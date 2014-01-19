@@ -3,25 +3,36 @@
 
 #include <QObject>
 #include <QJsonObject>
+#include <QVariant>
 
 class APIResponse : public QObject
 {
     Q_OBJECT
 
+public:
+    struct Error {
+        QString message;
+        qint16 code;
+    };
+
 private:
-    const ushort _id;
+    ushort _id;
+    Error _error;
+    float _jsonrpc;
+    QVariant* _result;
 
 public:
-    explicit APIResponse(const ushort id, QObject *parent = 0);
-
-    QJsonObject toJsonObject();
-    void fromJsonObject(QJsonObject r);
+    explicit APIResponse(const ushort id, const float jsonrpc, QObject *parent = 0);
 
     bool isError ();
-    QString getError ();
-    QString getResponse ();
 
+    void setError (Error err);
+    void setResult (QVariant *result);
+
+    Error *error();
+    QVariant *result ();
     ushort id() const;
+    float jsonRPC() const;
 
 signals:
 

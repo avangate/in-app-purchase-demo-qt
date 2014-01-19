@@ -1,12 +1,23 @@
 #include "apirequest.h"
 
-APIRequest::APIRequest(const QString& method, QVariantList& params, const ushort id, QObject *parent) :
-    _id (id),
-    _jsonrpc(2.0),
+APIRequest::APIRequest(QObject *parent) :
     QObject(parent)
 {
-    setMethod(method);
-    setParams(params);
+}
+
+APIRequest* APIRequest::createRequest (const char* method, QVariantList &params)
+{
+    return APIRequest::createRequest(QString(method), params);
+}
+
+APIRequest* APIRequest::createRequest (const QString& method, QVariantList &params)
+{
+    APIRequest* req = new APIRequest();
+
+    req->setMethod(method);
+    req->setParams(params);
+
+    return req;
 }
 
 QJsonObject APIRequest::toJsonObject()
@@ -16,7 +27,7 @@ QJsonObject APIRequest::toJsonObject()
     a.insert("method", method());
     a.insert("params", params());
     a.insert("id", id());
-    a.insert("jsonrpc", (float)jsonrpc());
+    a.insert("jsonrpc", jsonrpc());
 
     return QJsonObject::fromVariantMap(a);
 }
@@ -24,6 +35,11 @@ QJsonObject APIRequest::toJsonObject()
 ushort APIRequest::id() const
 {
     return _id;
+}
+
+void APIRequest::setId(const ushort id)
+{
+    _id = id;
 }
 
 void APIRequest::setMethod(const QString &method)
@@ -49,4 +65,9 @@ QVariantList APIRequest::params()
 float APIRequest::jsonrpc() const
 {
     return _jsonrpc;
+}
+
+void APIRequest::setJsonRPC(const float version)
+{
+    _jsonrpc = version;
 }

@@ -1,9 +1,12 @@
 #include "apiresponse.h"
-#include <QDebug>
 
-APIResponse::APIResponse(const ushort id, QObject *parent) :
+#include <QDebug>
+#include <QJsonDocument>
+
+APIResponse::APIResponse(const ushort id, const float version, QObject *parent) :
     QObject(parent),
-    _id(id)
+    _id (id),
+    _jsonrpc(version)
 {
 }
 
@@ -14,35 +17,31 @@ ushort APIResponse::id() const
 
 bool APIResponse::isError ()
 {
-    return false;
+    return !_error.message.isEmpty();
 }
 
-QString APIResponse::getError ()
+APIResponse::Error* APIResponse::error()
 {
-    return "";
+    return &_error;
 }
 
-QString APIResponse::getResponse ()
+void APIResponse::setError (Error err)
 {
-    return "";
+    _error = err;
 }
 
-void APIResponse::fromJsonObject(QJsonObject r)
+void APIResponse::setResult (QVariant *result)
 {
-    qDebug() << r;
+    _result = result;
 }
 
-QJsonObject APIResponse::toJsonObject()
+QVariant* APIResponse::result ()
 {
-
-    QVariantMap a;
-    a.insert("id", id());
-
-    if (isError()) {
-        a.insert ("error", getError());
-    } else {
-        a.insert ("response", getResponse());
-    }
-
-    return QJsonObject::fromVariantMap(a);
+    return _result;
 }
+
+float APIResponse::jsonRPC () const
+{
+    return _jsonrpc;
+}
+
