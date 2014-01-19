@@ -20,7 +20,6 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     apiorder.cpp \
-    apiclient.cpp \
     apirequest.cpp \
     apiresponse.cpp \
     billingdetails.cpp \
@@ -28,7 +27,6 @@ SOURCES += main.cpp \
 
 HEADERS += \
     apiorder.h \
-    apiclient.h \
     apirequest.h \
     apiresponse.h \
     billingdetails.h \
