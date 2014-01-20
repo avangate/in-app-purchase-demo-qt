@@ -15,8 +15,11 @@ int main(int argc, char *argv[])
 
     APIOrder* order = new APIOrder(APIUrl);
 
-    QObject::connect(order, &APIOrder::signalError, [=](APIResponse::Error *err) {
-        qWarning() << "Error [" << err->code << "]" << err->message;
+    QObject::connect(order, &APIOrder::signalError, [=](ushort id, APIOrder::Response *r) {
+        qDebug() << id;
+        qDebug() << r->error->message;
+        //APIOrder::Response* response = order->states()->find(id).value<APIOrder::Response*>();
+        qWarning() << "Error when calling" << APIOrder::getCallMethod(r->call) << "[" << r->error->code << "]" << r->error->message;
         QCoreApplication::quit();
     });
 

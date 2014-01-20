@@ -11,8 +11,8 @@ class APIResponse : public QObject
 
 public:
     struct Error {
-        QString message;
         qint16 code;
+        QString message;
     };
 
 private:

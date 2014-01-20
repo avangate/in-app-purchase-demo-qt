@@ -1,4 +1,5 @@
 #include "apiorder.h"
+#include "order.h"
 
 #include <QDebug>
 #include <QtCrypto>
@@ -24,7 +25,7 @@ APIOrder::APIOrder(QUrl url, QObject *parent) :
               this, &APIOrder::handleNetworkData);
 }
 
-void APIOrder::executeRequest (const QString method, QVariantList *params) const
+void APIOrder::executeRequest (const QString method, QVariantList *params)
 {
     APIRequest* request = APIRequest::createRequest(method, *params);
     request->setId(_cnt);
@@ -35,6 +36,7 @@ void APIOrder::executeRequest (const QString method, QVariantList *params) const
 
     qDebug() << "Request:" << d.toJson();
 
+    _cnt++;
     networkManager->post(*apiRequest, d.toJson());
 }
 
@@ -47,20 +49,20 @@ void APIOrder::handleNetworkData(QNetworkReply *networkReply)
         QJsonDocument d = QJsonDocument::fromJson(c);
         qDebug() << "Response:" << d.toJson();
 
-        APIResponse* resp = APIOrder::fromJsonDocument(&d, state());
+//        APIResponse* resp = APIOrder::fromJsonDocument(&d, state());
+        parseResponse(&d);
 
-        _cnt++;
-        if (resp->isError()) {
-            emit signalError(resp->error());
-        } else {
-            qDebug() << resp->result();
-            emit signalSuccess(resp);
-        }
-    } else {
+      } else {
+        APIOrder::Response _r;
         APIResponse::Error _err;
         _err.code = networkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         _err.message = networkReply->errorString();
-        emit signalError (&_err);
+
+        qDebug() << _err.message;
+
+        _r.status = false;
+        _r.error = &_err;
+        emit signalError (state(), &_r);
     }
 
     networkReply->deleteLater();
@@ -69,6 +71,11 @@ void APIOrder::handleNetworkData(QNetworkReply *networkReply)
 APIOrder::State APIOrder::state()
 {
     return m_state;
+}
+
+QMap<ushort, APIOrder::Response>* APIOrder::states()
+{
+    return m_states;
 }
 
 QString APIOrder::getCallMethod (APIOrder::State m_state)
@@ -107,43 +114,63 @@ QString APIOrder::getCallMethod (APIOrder::State m_state)
     return method;
 }
 
-
-APIResponse* APIOrder::fromJsonDocument(QJsonDocument* r, APIOrder::State m_state)
+void APIOrder::parseResponse(QJsonDocument* r)
 {
     QVariant v = r->toVariant();
     QVariantMap response = v.value<QVariantMap>();
 
-    qDebug() << response;
     ushort m_id = response.find("id").value().toUInt();
     float m_version = response.find("jsonrpc").value().toFloat();
-    APIResponse* _response = new APIResponse(m_id, m_version);
 
+    APIOrder::Response r_resp;//states()->find(m_id).value();
     /**/
     if (response.contains("error")) {
         QVariantMap _err = response.find("error").value().value<QVariantMap>();
-         //= _errVariant.value<QVariantMap>();
 
-        APIResponse::Error m_error;
-        m_error.code = _err.find("code").value().toInt();
-        m_error.message = _err.find("message").value().toString();
+        qint16 mcode = static_cast<qint16>(_err.find("code").value().toInt());
+        APIResponse::Error m_error {
+            mcode,
+            _err.find("message").value().toString()
+        };
 
-        _response->setError(m_error);
-
+        r_resp.error = &m_error;
+        emit signalError(m_id, &r_resp);
     }
+
     if (response.contains("result")) {
-//        QVariant _result = response.find("result").value();
-//        qDebug() << "result" << _result;
-        _response->setResult(&response.find("result").value());
+        QVariant _result = response.find("result").value();
 
-        qDebug() << "__noerr__" << _response->result();
+        switch (m_state){
+        case State::LOGIN:
+            _sessionHash = _result.toString();
+            qDebug () << "Session [" << _sessionHash << "]";
+            emit signalSessionStarted(_sessionHash);
+            break;
+        case State::ADDPRODUCT:
+        case State::SETBILLINGDETAILS:
+        case State::SETCOUNTRY:
+        case State::SETCURRENCY:
+        case State::SETIP:
+        case State::SETLANGUAGE:
+        case State::SETPAYMENTDETAILS:
+            if (_result.toBool())  {
+                emit signalSuccess(m_id, &r_resp);
+            } else {
+                APIResponse::Error _e {-1, QString("Unkown error")};
+                r_resp.error = &_e;
+                emit signalError(m_id, &r_resp);
+            }
+            break;
+        case State::PLACEORDER:
+        case State::GETORDER:
+            Order* o = new Order();
+            break;
+        }
+        emit signalSuccess(m_id, &r_resp);
     }
-    qDebug() << "__err__" << _response->result();
-    /**/
-    return _response;
 }
 
-
-void APIOrder::login(const QString Identifier, const QString SecretKey) const
+void APIOrder::login(const QString Identifier, const QString SecretKey)
 {
 
     QDateTime _sessionStart = QDateTime::currentDateTimeUtc();
@@ -281,47 +308,17 @@ void APIOrder::placeOrder()
     executeRequest(getCallMethod(m_state), _params);
 }
 
-void APIOrder::slotError (APIResponse::Error *error)
+void APIOrder::slotError (const ushort id, APIOrder::Response* response)
 {
-    emit signalError(error);
     emit signalBusy(false);
+
+    states()->insert(id, *response);
 }
 
-void APIOrder::slotSuccess (APIResponse* r)
+void APIOrder::slotSuccess (const ushort id, APIOrder::Response* response)
 {
-
-    switch (m_state){
-    case State::LOGIN:
-        _sessionHash = r->result()->toString();
-        qDebug () << "Sess:" << r->result();//_sessionHash;
-//        emit signalSessionStarted(_sessionHash);
-        break;
-    case State::ADDPRODUCT:
-
-        break;
-    case State::SETBILLINGDETAILS:
-
-        break;
-    case State::SETCOUNTRY:
-
-        break;
-    case State::SETCURRENCY:
-
-        break;
-    case State::SETIP:
-
-        break;
-    case State::SETLANGUAGE:
-
-        break;
-    case State::SETPAYMENTDETAILS:
-
-        break;
-    case State::PLACEORDER:
-
-        break;
-    }
-
     m_state = IDLE;
     emit signalBusy(false);
+
+    states()->insert(id, *response);
 }

@@ -13,7 +13,8 @@ CONFIG   += c++11
 
 CONFIG   -= app_bundle
 
-LIBS += -lqca
+LIBS += -lqca-qt5
+#LIBS += -L/usr/local/lib/ -l/usr/local/lib/qca.so
 
 TEMPLATE = app
 
@@ -31,3 +32,7 @@ HEADERS += \
     apiresponse.h \
     billingdetails.h \
     order.h
+
+
+#INCLUDEPATH += /usr/local/include/QtCrypto
+#DEPENDPATH += /usr/local/include/QtCrypto

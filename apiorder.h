@@ -26,7 +26,14 @@ public:
         SETBILLINGDETAILS,
         SETPAYMENTDETAILS,
         ADDPRODUCT,
-        PLACEORDER
+        PLACEORDER,
+        GETORDER
+    };
+
+    struct Response {
+        bool status;
+        APIOrder::State call;
+        APIResponse::Error* error;
     };
 
 private:
@@ -35,19 +42,23 @@ private:
     QDateTime _sessionStart;
     ushort _cnt;
     mutable State m_state;
+    QMap<ushort, APIOrder::Response>* m_states;
 
     QNetworkAccessManager* networkManager;
     QNetworkRequest* apiRequest;
 
-    static QString getCallMethod(APIOrder::State m_state);
-    static APIResponse* fromJsonDocument(QJsonDocument* r, APIOrder::State m_state);
-    void executeRequest (const QString method, QVariantList *params) const;
+    void parseResponse(QJsonDocument* r);
+    void executeRequest (const QString method, QVariantList *params);
 
 public:
     explicit APIOrder(QUrl url, QObject *parent = 0);
 
     APIOrder::State state();
-    void login(const QString Identifier, const QString SecretKey) const;
+    QMap<ushort, APIOrder::Response>* states();
+
+    static QString getCallMethod(APIOrder::State m_state);
+
+    void login(const QString Identifier, const QString SecretKey);
 
     void setLanguage (const QString IsoLang);
     void setCountry (const QString IsoCountry);
@@ -60,12 +71,12 @@ public:
 signals:
     void signalSessionStarted(QString sessHash);
     void signalBusy(bool) const;
-    void signalError(APIResponse::Error *error);
-    void signalSuccess (APIResponse *resp);
+    void signalSuccess(ushort, APIOrder::Response*);
+    void signalError(ushort, APIOrder::Response*);
 
 public slots:
-    void slotError(APIResponse::Error *error);
-    void slotSuccess (APIResponse *_response);
+    void slotError(const ushort, Response *);
+    void slotSuccess(const ushort, Response *);
 
 private slots:
     void handleNetworkData(QNetworkReply *networkReply);
