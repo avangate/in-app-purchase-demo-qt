@@ -3,12 +3,14 @@
 
 #include <QDebug>
 #include <QtCrypto>
+#include <QCoreApplication>
 #include <QJsonObject>
 #include <QJsonDocument>
 
 
 APIOrder::APIOrder(QUrl url, QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    _cnt(0)
 {
    //_client = new APIOrder(url, this);
 
@@ -20,6 +22,7 @@ APIOrder::APIOrder(QUrl url, QObject *parent) :
    networkManager = new QNetworkAccessManager();
    apiRequest = new QNetworkRequest(url);
    apiRequest->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+   apiRequest->setHeader(QNetworkRequest::UserAgentHeader, QCoreApplication::applicationName() + ":" + QCoreApplication::applicationVersion());
 
    connect(networkManager, &QNetworkAccessManager::finished,
               this, &APIOrder::handleNetworkData);
@@ -62,7 +65,7 @@ void APIOrder::handleNetworkData(QNetworkReply *networkReply)
 
         _r.status = false;
         _r.error = &_err;
-        emit signalError (state(), &_r);
+        //emit signalError (state(), &_r);
     }
 
     networkReply->deleteLater();
@@ -134,7 +137,7 @@ void APIOrder::parseResponse(QJsonDocument* r)
         };
 
         r_resp.error = &m_error;
-        emit signalError(m_id, &r_resp);
+        //emit signalError(m_id, &r_resp);
     }
 
     if (response.contains("result")) {
@@ -143,7 +146,6 @@ void APIOrder::parseResponse(QJsonDocument* r)
         switch (m_state){
         case State::LOGIN:
             _sessionHash = _result.toString();
-            qDebug () << "Session [" << _sessionHash << "]";
             emit signalSessionStarted(_sessionHash);
             break;
         case State::ADDPRODUCT:
@@ -153,20 +155,22 @@ void APIOrder::parseResponse(QJsonDocument* r)
         case State::SETIP:
         case State::SETLANGUAGE:
         case State::SETPAYMENTDETAILS:
-            if (_result.toBool())  {
-                emit signalSuccess(m_id, &r_resp);
-            } else {
-                APIResponse::Error _e {-1, QString("Unkown error")};
-                r_resp.error = &_e;
-                emit signalError(m_id, &r_resp);
-            }
+            qDebug() << r_resp.call << r_resp.error->message << r_resp.status;
+//            if (_result.toBool())  {
+//                emit signalSuccess(m_id, &r_resp);
+//            } else {
+//                APIResponse::Error _e {-1, QString("Unkown error")};
+//                r_resp.error = &_e;
+//                emit signalError(m_id, &r_resp);
+//            }
             break;
         case State::PLACEORDER:
         case State::GETORDER:
             Order* o = new Order();
             break;
         }
-        emit signalSuccess(m_id, &r_resp);
+        qDebug() << m_id << r_resp.call << r_resp.error->message << r_resp.status;
+        //emit signalSuccess(m_id, &r_resp);
     }
 }
 
