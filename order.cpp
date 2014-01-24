@@ -337,8 +337,6 @@ void Order::placeOrder()
 void Order::slotError ( Response* response)
 {
     emit signalBusy(false);
-
-    qDebug() << "Error:" << response->id () << response->error ()->code << response->error ()->message;
 //    states()->insert(id, *response);
 }
 

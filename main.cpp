@@ -20,27 +20,21 @@ int main(int argc, char *argv[])
     const QUrl APIUrl("http://sandbox101.avangate.local/api/order/2.0/rpc/");
 
     Order* order = new Order(APIUrl);
-
-    /**/
-    QObject::connect(order, &Order::signalError, [=](Response *r) {
-        qDebug() << r->id();
-        qDebug() << r->error()->message;
-        //Order::Response* response = order->states()->find(id).value<Order::Response*>();
-        //qWarning() << "Error when calling" << Order::getCallMethod(r->call) << "[" << r["error"]["code"] << "]" << r["error"]["message"];
-        QCoreApplication::quit();
-    });
-    /**/
-    order->login(Identifier, SecretKey);
-
     QApplication a(argc, argv);
     MainWindow w;
 
-    /**/
+    QObject::connect(order, &Order::signalError, [=](Response *response) {
+        qDebug() << "Error:" << response->id () << response->error ()->code << response->error ()->message;
+        //Order::Response* response = order->states()->find(id).value<Order::Response*>();
+        //qWarning() << "Error when calling" << Order::getCallMethod(r->call) << "[" << r["error"]["code"] << "]" << r["error"]["message"];
+        QApplication::quit();
+    });
+
     QObject::connect(order, &Order::signalSessionStarted, [=](QString _sessionHash) {
         qDebug() << "Session started [" << _sessionHash << "]";
 
-//        order->setLanguage("en");
-//        order->setCurrency("eur");
+        order->setLanguage("en");
+        order->setCurrency("eur");
 
         BillingDetails* b = new BillingDetails();
         b->setFirstName("Marius");
@@ -49,16 +43,14 @@ int main(int argc, char *argv[])
 
         order->setBillingDetails(b);
 
-//        QStringList Options;
-//        Options << "2ys" << "250gbstorage1";
-//        order->addProduct(4553316, 1, Options);
+        QStringList Options;
+        Options << "2ys" << "250gbstorage1";
+        order->addProduct(4553316, 1, Options);
     });
-    /**/
+
     QObject::connect(order, &Order::signalSetupFinished,
                      &w, &QMainWindow::show);
-    //QCoreApplication a(argc, argv);
 
-    //w.show();
-
+    order->login(Identifier, SecretKey);
     return a.exec();
 }
