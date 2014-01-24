@@ -1,3 +1,6 @@
 moc*
 *.o
 Makefile
+ui_mainwindow.h
+*.pro.user
+qrc_resources.cpp

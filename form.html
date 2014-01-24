@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<style type="text/css" media="screen" >
+        body {font-family: sans-serif} 
+        h1 {font-size:102%; margin-bottom:1em}
+        section {width:500px;margin:auto}
+        form fieldset {border-left:0; border-right:0;}
+        form label { clear:right; display:block; width:400px;position:relative;line-height:1.7em;height:3em; }
+        label input,label select {position:absolute;left:200px; margin-top:7px}
+        form button {float:right}
+    </style>
+	<title>Add payment details</title>
+</head>
+<body>
+	<!-- hic sunt leones -->
+        <section>
+        <!--<a href="urn:moretest">click me!</a>-->
+        <a href="http://sandbox.avangate.com/api/order/2.0/setpaymentdetails.php?finish=false">click me!</a>
+        <!-- <form method="post" action="https://api.avangate.com/order/2.0/setpaymentdetails.php?finish=false&amp;redir=urn%3Areturn" > -->
+        <!-- <form method="get" action="http://littr.git/?redir=urn:test"> -->
+        <form method="post" action="http://sandbox17.avangate.local/api/order/2.0/setpaymentdetails.php?finish=false">
+          <fieldset>
+            <legend>Payment details</legend>
+            <input type="hidden" value="s" name="hash" />
+            <!-- <input type="hidden" name="method" value="CCNOPCI" /> TEST can also be used -->
+            <input type="hidden" value="eur" name="currency" />
+            <input type="hidden" value="de" name="country" />
+            <label>
+                Card type
+                <select name="card_type">
+                    <option value="VISA">Visa</option>
+                    <option value="VISAELECTRON">Visa Electron</option>
+                    <option value="MC">Master Card</option>
+                    <option value="MAESTRO">Maestro</option>
+                    <option value="AMEX">American Express</option>
+                    <option value="DISCOVER">Discovery</option>
+                </select>
+            </label>
+            <label>
+                Card Number
+                <input type="number" name="card_number" value="" placeholder="4111111111111111"/>
+            </label>
+            <label>
+                CVIV 
+                <input type="text" name="ccid" value="" placeholder="777"/>
+            </label>
+            <label>
+                Expiration Date
+                <select name="date_year">
+                    <option value="14">2014</option>
+                    <option value="15">2015</option>
+                    <option value="16">2016</option>
+                    <option value="17">2017</option>
+                </select>
+                <select name="date_month" style="left:290px">
+                    <option value="01">January</option>
+                    <option value="02">February</option>
+                    <option value="03">March</option>
+                    <option value="04">April</option>
+                    <option value="05">May</option>
+                    <option value="06">June</option>
+                    <option value="07">July</option>
+                    <option value="08">August</option>
+                    <option value="09">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
+            </label>
+            <label>
+                Name on Card
+                <input type="text" name="holder_name" placeholder="John Smith"/>
+            </label>
+           </fieldset>
+           <fieldset style="border:0">
+            <label>
+                Enable recurring payments
+                <input type="checkbox" name="recurringenabled" checked="checked" value="true" style="left:340px;margin-top:11px"/>
+            </label>
+            <input type="submit" value="Submit payment details" />
+           </fieldset>
+        </form>
+	</section>
+	<!-- /hic sunt leones -->
+</body>
+</html>

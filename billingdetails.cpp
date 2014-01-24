@@ -1,5 +1,7 @@
 #include "billingdetails.h"
 
+using namespace AvangateAPI;
+
 BillingDetails::BillingDetails(QObject *parent) :
     QObject(parent)
 {

@@ -3,6 +3,8 @@
 
 #include <QObject>
 
+namespace AvangateAPI
+{
 class BillingDetails : public QObject
 {
     Q_OBJECT
@@ -48,5 +50,5 @@ signals:
 public slots:
 
 };
-
+}
 #endif // BILLINGDETAILS_H

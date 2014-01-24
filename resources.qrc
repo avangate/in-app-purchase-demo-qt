@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/html">
+        <file>form.html</file>
+    </qresource>
+</RCC>

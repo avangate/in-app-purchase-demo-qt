@@ -1,47 +1,64 @@
-#include <QCoreApplication>
+#include <QApplication>
+#include <QMapIterator>
 #include <QDebug>
 
-#include "apiorder.h"
-#include "apiresponse.h"
+#include "order.h"
+#include "response.h"
 #include "billingdetails.h"
+#include "mainwindow.h"
+
+using namespace AvangateAPI;
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
 
-    const QString Identifier = "AVANTEST";
-    const QString SecretKey = "5&rl6N3%eT1O5(oW9~^I";
-    const QUrl APIUrl("https://api.avangate.com/order/2.0/rpc/");
+//    const QString Identifier = "AVANTEST";
+//    const QString SecretKey = "5&rl6N3%eT1O5(oW9~^I";
+//    const QUrl APIUrl("https://api.avangate.com/order/2.0/rpc/");
+    const QString Identifier = "CC1234";
+    const QString SecretKey = "SECRET_KEY";
+    const QUrl APIUrl("http://sandbox101.avangate.local/api/order/2.0/rpc/");
 
-    APIOrder* order = new APIOrder(APIUrl);
+    Order* order = new Order(APIUrl);
 
-    QObject::connect(order, &APIOrder::signalError, [=](ushort id, APIOrder::Response *r) {
-        qDebug() << id;
-        qDebug() << r->error->message;
-        //APIOrder::Response* response = order->states()->find(id).value<APIOrder::Response*>();
-        qWarning() << "Error when calling" << APIOrder::getCallMethod(r->call) << "[" << r->error->code << "]" << r->error->message;
+    /**/
+    QObject::connect(order, &Order::signalError, [=](Response *r) {
+        qDebug() << r->id();
+        qDebug() << r->error()->message;
+        //Order::Response* response = order->states()->find(id).value<Order::Response*>();
+        //qWarning() << "Error when calling" << Order::getCallMethod(r->call) << "[" << r["error"]["code"] << "]" << r["error"]["message"];
         QCoreApplication::quit();
     });
-
+    /**/
     order->login(Identifier, SecretKey);
 
-    QObject::connect(order, &APIOrder::signalSessionStarted, [=](QString _sessionHash) {
+    QApplication a(argc, argv);
+    MainWindow w;
+
+    /**/
+    QObject::connect(order, &Order::signalSessionStarted, [=](QString _sessionHash) {
         qDebug() << "Session started [" << _sessionHash << "]";
 
-        order->setLanguage("en");
-        order->setCurrency("eur");
+//        order->setLanguage("en");
+//        order->setCurrency("eur");
 
-        BillingDetails b;
-        b.setFirstName("Marius");
-        b.setLastName("Orcsik");
-        b.setEmail("marius.orcsik@avangate.com");
+        BillingDetails* b = new BillingDetails();
+        b->setFirstName("Marius");
+        b->setLastName("Orcsik");
+        b->setEmail("marius.orcsik@avangate.com");
 
-        order->setBillingDetails(&b);
+        order->setBillingDetails(b);
 
-        QStringList Options;
-        Options << "2ys" << "250gbstorage1";
-        order->addProduct(4553316, 1, Options);
+//        QStringList Options;
+//        Options << "2ys" << "250gbstorage1";
+//        order->addProduct(4553316, 1, Options);
     });
+    /**/
+    QObject::connect(order, &Order::signalSetupFinished,
+                     &w, &QMainWindow::show);
+    //QCoreApplication a(argc, argv);
+
+    //w.show();
 
     return a.exec();
 }

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core network
+QT       += core network gui widgets webkitwidgets
 QT       -= gui
 
 TARGET = cart-demo-qt
@@ -20,19 +20,25 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp \
-    apiorder.cpp \
-    apirequest.cpp \
-    apiresponse.cpp \
+    order.cpp \
+    request.cpp \
+    response.cpp \
     billingdetails.cpp \
-    order.cpp
+    mainwindow.cpp \
+    urnnetworkaccessmanager.cpp
 
 HEADERS += \
-    apiorder.h \
-    apirequest.h \
-    apiresponse.h \
+    order.h \
+    request.h \
+    response.h \
     billingdetails.h \
-    order.h
+    mainwindow.h \
+    urnnetworkaccessmanager.h
 
+FORMS    += mainwindow.ui
+
+RESOURCES += \
+    resources.qrc
 
 #INCLUDEPATH += /usr/local/include/QtCrypto
 #DEPENDPATH += /usr/local/include/QtCrypto

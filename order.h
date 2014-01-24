@@ -2,43 +2,90 @@
 #define ORDER_H
 
 #include <QObject>
+#include <QDateTime>
+#include <QtNetwork>
+#include <QVariantMap>
+
+//#include "client.h"
+#include "billingdetails.h"
+#include "response.h"
+#include "request.h"
+
+namespace AvangateAPI
+{
+
 
 class Order : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY (QString RefNo READ RefNo WRITE setRefNo)
-    Q_PROPERTY (QString Status READ Status WRITE setStatus)
-    Q_PROPERTY (QString ApproveStatus READ ApproveStatus WRITE setApproveStatus)
-    Q_PROPERTY (QString Error READ Error WRITE setError)
-    Q_PROPERTY (bool RecurringEnabled READ RecurringEnabled WRITE setRecurringEnabled)
-
-private:
-    QString _RefNo;
-    QString _Status;
-    QString _ApproveStatus;
-    QString _Error;
-    bool _RecurringEnabled;
 
 public:
-    explicit Order(QObject *parent = 0);
+    enum State {
+        IDLE,
+        LOGIN = 1,
+        SETLANGUAGE,
+        SETCOUNTRY,
+        SETCURRENCY,
+        SETIP,
+        SETBILLINGDETAILS,
+        SETPAYMENTDETAILS,
+        ADDPRODUCT,
+        PLACEORDER,
+        GETORDER
+    };
 
+//    struct Response {
+//        Order::State call;
+//        Request* request;
+//        Response* response;
+//    };
 
-    void setRefNo(QString RefNo);
-    void setStatus(QString Status);
-    void setApproveStatus(QString ApproveStatus);
-    void setError(QString Error);
-    void setRecurringEnabled(bool RecurringEnabled);
+private:
 
-    QString RefNo();
-    QString Status();
-    QString ApproveStatus();
-    QString Error();
-    bool RecurringEnabled();
+    QString _sessionHash;
+    QDateTime _sessionStart;
+    ushort _cnt;
+    mutable State m_state;
+//    QMap<ushort, Response>* m_states;
+    QUrl m_url;
 
+    QNetworkAccessManager* networkManager;
+    //QNetworkRequest* Request;
+
+    void parseResponse(QJsonDocument jsonDoc);
+    void executeRequest (const QString method, QVariantList *params);
+
+public:
+    explicit Order(QUrl url, QObject *parent = 0);
+
+    Order::State state();
+//    QMap<ushort, Response>* states();
+
+    static QString getCallMethod(Order::State m_state);
+
+    void login(const QString Identifier, const QString SecretKey);
+/**/
+    void setLanguage (const QString IsoLang);
+    void setCountry (const QString IsoCountry);
+    void setCurrency (const QString IsoCurrency);
+    void setIP (const QString IP);
+    void addProduct (const quint32 ProductId, quint8 Quantity, QStringList PriceOptions);
+    void setBillingDetails (BillingDetails *Billing);
+    void placeOrder ();
+/**/
 signals:
+    void signalSessionStarted(QString sessHash);
+    void signalBusy(bool) const;
+    void signalSuccess(Response*);
+    void signalError(Response*);
+    void signalSetupFinished();
 
 public slots:
+    void slotError(Response*);
+    void slotSuccess(Response*);
 
+private slots:
+    void handleNetworkData(QNetworkReply *networkReply);
 };
-
+}
 #endif // ORDER_H
