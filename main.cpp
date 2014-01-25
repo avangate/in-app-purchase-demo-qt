@@ -27,9 +27,9 @@ int main(int argc, char *argv[])
         order->setCurrency("eur");
 
         BillingDetails* b = new BillingDetails();
-        b->setFirstName("Marius");
-        b->setLastName("Orcsik");
-        b->setEmail("marius.orcsik@avangate.com");
+        b->setFirstName("API");
+        b->setLastName("TEST");
+        b->setEmail("sandbox.avangate@avangate.com");
         b->setCity("Bucharest");
         b->setAddress("Some Street, no 666");
         b->setCountry("ro");
