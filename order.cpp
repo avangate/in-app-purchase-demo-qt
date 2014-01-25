@@ -44,8 +44,6 @@ void Order::executeRequest (const QString method, QVariantList *params)
     QJsonDocument d;
     d.setObject(request->jsonObject());
 
-    qDebug() << "Request:" << d.toJson();
-
 //    states()->insert(_cnt, );
 
     _cnt++;
@@ -53,12 +51,13 @@ void Order::executeRequest (const QString method, QVariantList *params)
     QNetworkRequest* _request = new QNetworkRequest(m_url);
     _request->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
+    qDebug() << "Request:" << d.toJson();
+
     networkManager->post(*_request, d.toJson());
 }
 
 void Order::handleNetworkData (QNetworkReply *networkReply)
 {
-//    QUrl _url = networkReply->url();
     if ( !networkReply->error() ) {
         QByteArray c(networkReply->readAll());
 

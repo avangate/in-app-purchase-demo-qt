@@ -6,7 +6,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkDiskCache>
 
-#include "urnnetworkaccessmanager.h"
 #include "response.h"
 
 namespace Ui {
@@ -20,8 +19,6 @@ class MainWindow : public QMainWindow
 
 private:
     QString _session;
-    AvangateAPI::urnNetworkAccessManager* _network;
-    //QNetworkDiskCache* _cache;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -32,11 +29,17 @@ public:
 private:
     Ui::MainWindow *ui;
 
+signals:
+    void signalError(Response*);
+    void signalSuccess();
+    void signalOrderPlaced(QString);
+
 public slots:
     void slotUnsupportedContent (QNetworkReply * reply);
     void slotHandleReply (QNetworkReply * reply);
     void slotError (Response*);
     void slotSetSession (QString);
+    void slotOrderPlaced (QString);
 
 };
 

@@ -20,9 +20,9 @@
           <fieldset>
             <legend>Payment details</legend>
             <input type="hidden" value="%2" name="hash" />
-            <!-- <input type="hidden" name="method" value="CCNOPCI" /> TEST can also be used -->
+            <input type="hidden" name="method" value="CCNOPCI" /> <!-- TEST can also be used -->
             <input type="hidden" value="eur" name="currency" />
-            <input type="hidden" value="de" name="country" />
+            <input type="hidden" value="ro" name="country" />
             <label>
                 Card type
                 <select name="card_type">
@@ -36,19 +36,19 @@
             </label>
             <label>
                 Card Number
-                <input type="number" name="card_number" value="" placeholder="4111111111111111"/>
+                <input type="number" name="card_number" value="4111111111111111" placeholder="4111111111111111"/>
             </label>
             <label>
                 CVIV 
-                <input type="text" name="ccid" value="" placeholder="777"/>
+                <input type="text" name="ccid" value="777" placeholder="777"/>
             </label>
             <label>
                 Expiration Date
                 <select name="date_year">
-                    <option value="14">2014</option>
-                    <option value="15">2015</option>
-                    <option value="16">2016</option>
-                    <option value="17">2017</option>
+                    <option value="2014">2014</option>
+                    <option value="2015">2015</option>
+                    <option value="2016">2016</option>
+                    <option value="2017">2017</option>
                 </select>
                 <select name="date_month" style="left:290px">
                     <option value="01">January</option>
@@ -67,7 +67,7 @@
             </label>
             <label>
                 Name on Card
-                <input type="text" name="holder_name" placeholder="John Smith"/>
+                <input type="text" name="holder_name" placeholder="John Smith" value="John Smith"/>
             </label>
            </fieldset>
            <fieldset style="border:0">

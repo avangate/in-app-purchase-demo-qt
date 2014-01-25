@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 
     MainWindow w;
 
-
     QObject::connect(order, &Order::signalError, &w, &MainWindow::slotError);
     QObject::connect(order, &Order::signalSetupFinished, &w, &QMainWindow::show);
     QObject::connect(order, &Order::signalSessionStarted, &w, &MainWindow::slotSetSession);
@@ -48,6 +47,8 @@ int main(int argc, char *argv[])
     QObject::connect(order, &Order::signalError, [=](Response *response) {
         qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
     });
+
+    //QObject::connect(&w, &MainWindow::signalError ,order, &Order::slotError, &w, &MainWindow::slotError);
 
     order->login(Config::getMerchantCode(), Config::getSecretKey());
     return a.exec();

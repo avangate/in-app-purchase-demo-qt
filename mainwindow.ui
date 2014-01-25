@@ -5,23 +5,29 @@
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>620</height>
+    <width>790</width>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>In app payment with the Avangate API</string>
+   <string notr="true">In app payment with the Avangate API</string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
      <widget class="QWebView" name="webView">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="url">
        <url>
