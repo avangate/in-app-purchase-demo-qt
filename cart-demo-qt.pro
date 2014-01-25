@@ -33,7 +33,8 @@ HEADERS += \
     response.h \
     billingdetails.h \
     mainwindow.h \
-    urnnetworkaccessmanager.h
+    urnnetworkaccessmanager.h \
+    config.h
 
 FORMS    += mainwindow.ui
 

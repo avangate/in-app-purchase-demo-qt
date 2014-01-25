@@ -58,7 +58,7 @@ void Order::executeRequest (const QString method, QVariantList *params)
 
 void Order::handleNetworkData (QNetworkReply *networkReply)
 {
-    //QUrl _url = networkReply->url();
+//    QUrl _url = networkReply->url();
     if ( !networkReply->error() ) {
         QByteArray c(networkReply->readAll());
 
@@ -69,12 +69,10 @@ void Order::handleNetworkData (QNetworkReply *networkReply)
 
       } else {
         Response* _r = new Response();
-        _r->setId (999);
+        _r->setId (_cnt - 1);
         Response::Error _err;
         _err.code = networkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         _err.message = networkReply->errorString();
-
-        qDebug() << _err.message;
 
         _r->setError (_err);
         emit signalError (_r);
@@ -132,7 +130,7 @@ QString Order::getCallMethod (Order::State m_state)
 void Order::parseResponse(QJsonDocument jsonDoc)
 {
     QJsonObject json = jsonDoc.object ();
-    //qDebug () << json;
+
     Response* resp = new Response();
     resp->setId (json["id"].toInt ());
     resp->setJsonRPC (json["jsonrpc"].toDouble ());
@@ -162,7 +160,6 @@ void Order::parseResponse(QJsonDocument jsonDoc)
         switch (m_state) {
         case State::LOGIN:
             _sessionHash = resp->result ()->toString();
-            qDebug () << "Session [" << _sessionHash << "]";
             emit signalSessionStarted(_sessionHash);
             break;
         case State::ADDPRODUCT:
@@ -298,13 +295,21 @@ void Order::setIP(const QString IP)
 void Order::setBillingDetails(BillingDetails *Billing)
 {
     m_state = SETBILLINGDETAILS;
-//    qDebug() << Billing;
 
-    QVariant b = QVariant::fromValue (Billing);
+    QVariantMap b;
+    b.insert("FirstName", Billing->FirstName());
+    b.insert("LastName", Billing->LastName());
+    b.insert("Email", Billing->Email());
+    b.insert("City", Billing->City());
+    b.insert("Country", Billing->Country());
+    b.insert("State", Billing->State());
+    b.insert("PostalCode", Billing->PostalCode());
+    b.insert("Address", Billing->Address());
+
     emit signalBusy(true);
     QVariantList* _params = new QVariantList();
     _params->append(_sessionHash);
-    _params->append(b);
+    _params->append(QVariant::fromValue(b));
 
     executeRequest(getCallMethod(m_state), _params);
 }

@@ -16,14 +16,10 @@
 <body>
 	<!-- hic sunt leones -->
         <section>
-        <!--<a href="urn:moretest">click me!</a>-->
-        <a href="http://sandbox.avangate.com/api/order/2.0/setpaymentdetails.php?finish=false">click me!</a>
-        <!-- <form method="post" action="https://api.avangate.com/order/2.0/setpaymentdetails.php?finish=false&amp;redir=urn%3Areturn" > -->
-        <!-- <form method="get" action="http://littr.git/?redir=urn:test"> -->
-        <form method="post" action="http://sandbox17.avangate.local/api/order/2.0/setpaymentdetails.php?finish=false">
+        <form method="post" action="%1">
           <fieldset>
             <legend>Payment details</legend>
-            <input type="hidden" value="s" name="hash" />
+            <input type="hidden" value="%2" name="hash" />
             <!-- <input type="hidden" name="method" value="CCNOPCI" /> TEST can also be used -->
             <input type="hidden" value="eur" name="currency" />
             <input type="hidden" value="de" name="country" />

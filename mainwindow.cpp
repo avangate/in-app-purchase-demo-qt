@@ -1,10 +1,14 @@
 #include "mainwindow.h"
+#include "config.h"
 #include "ui_mainwindow.h"
 
 #include <QStandardPaths>
 #include <QWebPage>
 #include <QDebug>
 #include <QNetworkProxyFactory>
+#include <QFile>
+#include <QUrlQuery>
+#include <QErrorMessage>
 
 using namespace AvangateAPI;
 
@@ -13,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    setWindowTitle("In app payment with the Avangate API");
 
 //    QNetworkProxy* _proxy = new QNetworkProxy(QNetworkProxy::HttpProxy, "proxy.avangate.local", 8080);
 //    QNetworkProxyQuery* _query = new QNetworkProxyQuery(QUrl("http://sandbox.avangate.com"));
@@ -50,11 +54,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //    connect(ui->webView->page(), &QWebPage::,
 //            this, &MainWindow::slotHandleReply);
-
-//    QUrl r("http://google.com");
-    QUrl r(QStringLiteral ("qrc:html/form.html"));
-
-    ui->webView->setUrl( r );
 }
 
 void MainWindow::slotHandleReply (QNetworkReply *reply)
@@ -70,6 +69,38 @@ void MainWindow::slotUnsupportedContent (QNetworkReply * reply)
 void MainWindow::slotUrlChanged (const QUrl& url)
 {
     qDebug() << url;
+}
+
+void MainWindow::slotError(Response* err)
+{
+    ui->webView->setEnabled(false);
+    QErrorMessage* _err = new QErrorMessage(this);
+
+    _err->setWindowTitle("Error");
+    _err->showMessage(err->error()->message);
+}
+
+void MainWindow::slotSetSession(QString session)
+{
+    _session = session;
+
+    QFile formFile(":/html/form.html");
+    formFile.open(QIODevice::ReadOnly);
+
+    QString html = formFile.readAll();
+
+    QUrlQuery query;
+    query.addQueryItem("finish", "false");
+    query.addQueryItem("redir", "urn:return");
+
+    QUrl u = Config::getUrl();
+    QString path = u.path().replace(QString("rpc/"), QString("setpaymentdetails.php"));
+    u.setPath(path);
+    u.setQuery(query);
+
+    ui->webView->setHtml(QString(html).arg (u.toString()).arg(_session));
+
+    show();
 }
 
 MainWindow::~MainWindow()

@@ -78,7 +78,7 @@ signals:
     void signalBusy(bool) const;
     void signalSuccess(Response*);
     void signalError(Response*);
-    void signalSetupFinished();
+    void signalSetupFinished(QString);
 
 public slots:
     void slotError(Response*);

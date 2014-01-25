@@ -7,6 +7,21 @@ BillingDetails::BillingDetails(QObject *parent) :
 {
 }
 
+BillingDetails::BillingDetails(const BillingDetails& toCopy)
+{
+    setFirstName(toCopy.FirstName());
+    setLastName(toCopy.LastName());
+    setEmail(toCopy.Email());
+    setCity(toCopy.City());
+    setCountry(toCopy.Country());
+    setPostalCode(toCopy.PostalCode());
+    setAddress(toCopy.Address());
+    setState(toCopy.State());
+}
+
+BillingDetails::~BillingDetails () {
+
+}
 void BillingDetails::setFirstName(QString FirstName)
 {
     _FirstName = FirstName;
@@ -35,32 +50,16 @@ void BillingDetails::setPostalCode(QString PostalCode)
 {
     _PostalCode = PostalCode;
 }
+void BillingDetails::setAddress(QString Address)
+{
+    _Address = Address;
+}
 
-QString BillingDetails::FirstName()
-{
-    return _FirstName;
-}
-QString BillingDetails::LastName()
-{
-    return _LastName;
-}
-QString BillingDetails::Email()
-{
-    return _Email;
-}
-QString BillingDetails::City()
-{
-    return _City;
-}
-QString BillingDetails::State()
-{
-    return _State;
-}
-QString BillingDetails::Country()
-{
-    return _Country;
-}
-QString BillingDetails::PostalCode()
-{
-    return _PostalCode;
-}
+QString BillingDetails::FirstName() const { return _FirstName; }
+QString BillingDetails::LastName() const { return _LastName; }
+QString BillingDetails::Email() const { return _Email; }
+QString BillingDetails::City() const { return _City;}
+QString BillingDetails::State() const { return _State; }
+QString BillingDetails::Country() const { return _Country; }
+QString BillingDetails::Address() const { return _Address; }
+QString BillingDetails::PostalCode() const { return _PostalCode; }
