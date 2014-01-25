@@ -32,14 +32,15 @@ private:
 signals:
     void signalError(Response*);
     void signalSuccess();
-    void signalOrderPlaced(QString);
+    void signalOrderPlaced(QString, QString);
 
 public slots:
     void slotUnsupportedContent (QNetworkReply * reply);
     void slotHandleReply (QNetworkReply * reply);
     void slotError (Response*);
     void slotSetSession (QString);
-    void slotOrderPlaced (QString);
+    void slotOrderPlaced (QString, QString);
+    void slotSuccess ();
 
 };
 

@@ -44,11 +44,15 @@ int main(int argc, char *argv[])
 
         emit order->signalSetupFinished(_sessionHash);
     });
+    QObject::connect(&w, &MainWindow::signalSuccess , &a, QApplication::quit);
+
     QObject::connect(order, &Order::signalError, [=](Response *response) {
         qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
     });
+    QObject::connect(&w, &MainWindow::signalError, [=](Response *response) {
+        qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
+    });
 
-    //QObject::connect(&w, &MainWindow::signalError ,order, &Order::slotError, &w, &MainWindow::slotError);
 
     order->login(Config::getMerchantCode(), Config::getSecretKey());
     return a.exec();

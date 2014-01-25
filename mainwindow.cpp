@@ -17,44 +17,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    //setWindowTitle("In app payment with the Avangate API");
 
-//    QNetworkProxy* _proxy = new QNetworkProxy(QNetworkProxy::HttpProxy, "proxy.avangate.local", 8080);
-//    QNetworkProxyQuery* _query = new QNetworkProxyQuery(QUrl("http://sandbox.avangate.com"));
-
-//    QNetworkProxyFactory* _proxyFactory = new QNetworkProxyFactory(_query);
-//    _proxyFactory << _proxy;
-
-
-    //_network = new urnNetworkAccessManager(ui->webView);
-//    _network->setProxyFactory (_proxyFactory);
-
-
-    //QSslConfiguration _ssl = QSslConfiguration::defaultConfiguration();
-
-    //_cache = new QNetworkDiskCache(ui->webView);
-    //_cache->setCacheDirectory(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/");
-    //_cache->setMaximumCacheSize(1000000); //set the cache to 10megs
-    //_network->setCache(_cache);
-    //ui->webView->page()->setNetworkAccessManager (_network);
-
-    //ui->webView->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-    //ui->webView->page()->setForwardUnsupportedContent(true);
-
-    //qDebug() << ui->webView->page ()->forwardUnsupportedContent ();
-
-    connect(ui->webView->page(), &QWebPage::unsupportedContent,
-            this, &MainWindow::slotUnsupportedContent);
-    /**/
+//    connect(ui->webView->page(), &QWebPage::unsupportedContent,
+//            this, &MainWindow::slotUnsupportedContent);
     connect(ui->webView->page()->networkAccessManager (), &QNetworkAccessManager::finished,
                          this, &MainWindow::slotHandleReply);
-
     connect(this, &MainWindow::signalOrderPlaced, this, &MainWindow::slotOrderPlaced);
-//    connect(ui->webView, &QWebView::urlChanged,
-//            this, &MainWindow::slotUrlChanged);
-
-//    connect(_network, &QNetworkAccessManager::fi,
-//            this, &MainWindow::slotHandleReply);
+    connect(this, &MainWindow::signalError, this, &MainWindow::slotError);
 
     show();
 }
@@ -66,27 +35,24 @@ void MainWindow::slotHandleReply (QNetworkReply *reply)
 
     if ( reply->url().scheme() == "urn" &&  reply->url().path() == "return") {
         // received redirect back from avangate
-        QUrlQuery q(reply->url().query(QUrl::FullyDecoded));
+        QUrlQuery q(reply->url().query());
 
         if (q.queryItemValue("status") == "NOK") {
-            Response *madeup;
+            Response *madeup = new Response();
+
             madeup->setError(
-                Response::Error {
-                    -1,
-                    q.queryItemValue("message")
-                }
+              Response::Error {
+                  -1,
+                  QString(q.queryItemValue("message", QUrl::FullyDecoded)).replace("+", " ")
+              }
             );
             madeup->setId(6);
 
             emit signalError(madeup);
-        }
-        if (q.queryItemValue("status") == "OK") {
-            emit signalSuccess();
-        }
-        if (q.queryItemValue("status") == "PENDING") {
-            emit signalSuccess();
+        }     
+        if (q.queryItemValue("status") == "AUTHRECEIVED" || q.queryItemValue("status") == "PENDING") {
             QString refNo = q.queryItemValue("refNo");
-            emit signalOrderPlaced(refNo);
+            emit signalOrderPlaced(refNo, q.queryItemValue("status"));
         }
     } else {
         // some error
@@ -105,11 +71,16 @@ void MainWindow::slotUrlChanged (const QUrl& url)
 
 void MainWindow::slotError(Response* err)
 {
-    ui->webView->setEnabled(false);
+    //ui->webView->setEnabled(false);
     QErrorMessage* _err = new QErrorMessage(this);
 
     _err->setWindowTitle("Error");
     _err->showMessage(err->error()->message);
+}
+
+void MainWindow::slotSuccess()
+{
+     emit signalSuccess();
 }
 
 void MainWindow::slotSetSession(QString session)
@@ -134,12 +105,24 @@ void MainWindow::slotSetSession(QString session)
     ui->webView->setHtml(QString(html).arg (u.toString()).arg(_session));
 }
 
-void MainWindow::slotOrderPlaced(QString refNo)
+void MainWindow::slotOrderPlaced(QString refNo, QString status)
 {
-    QErrorMessage* _err = new QErrorMessage(this);
+    QErrorMessage* _err = new QErrorMessage();
 
-    _err->setWindowTitle("Success !");
-    _err->showMessage(QString("Order %1 placed successfully").arg(refNo));
+    if (status == "PENDING") {
+        _err->setWindowTitle("Failed !");
+        _err->showMessage(QString("Order %1 placed, but couldn't finish the payment").arg(refNo));
+    }
+    if (status == "AUTHRECEIVED") {
+        _err->setWindowTitle("Success !");
+        _err->showMessage(QString("Congratulations!\nOrder %1 placed successfully").arg(refNo));
+    }
+    ui->centralWidget->close();
+    ui->webView->close();
+
+    setCentralWidget(_err);
+
+    connect (_err, &QErrorMessage::accepted, this, &MainWindow::slotSuccess);
 }
 
 MainWindow::~MainWindow()
