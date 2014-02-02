@@ -2,4 +2,8 @@
     <qresource prefix="/html">
         <file>form.html</file>
     </qresource>
+    <qresource prefix="/images">
+        <file>Logo_Avangate.svg</file>
+        <file>A_Avangate-01.svg</file>
+    </qresource>
 </RCC>

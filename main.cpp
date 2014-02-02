@@ -5,55 +5,21 @@
 #include "order.h"
 #include "response.h"
 #include "billingdetails.h"
+#include "paymentwindow.h"
 #include "mainwindow.h"
 
 using namespace AvangateAPI;
 
+bool Config::devel;
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-
-    Order* order = new Order(Config::getUrl());
-
+    
+    Config::devel = false;
+    
     MainWindow w;
+    w.show();
 
-    QObject::connect(order, &Order::signalError, &w, &MainWindow::slotError);
-    QObject::connect(order, &Order::signalSetupFinished, &w, &QMainWindow::show);
-    QObject::connect(order, &Order::signalSessionStarted, &w, &MainWindow::slotSetSession);
-    QObject::connect(order, &Order::signalSessionStarted, [=](QString _sessionHash) {
-        qDebug() << "Session started [" << _sessionHash << "]";
-
-        order->setLanguage("en");
-        order->setCurrency("eur");
-
-        BillingDetails* b = new BillingDetails();
-        b->setFirstName("API");
-        b->setLastName("TEST");
-        b->setEmail("sandbox.avangate@avangate.com");
-        b->setCity("Bucharest");
-        b->setAddress("Some Street, no 666");
-        b->setCountry("ro");
-        b->setState("Bucharest");
-        b->setPostalCode("101222");
-
-        order->setBillingDetails(b);
-
-        QStringList Options;
-        Options << "2ys" << "250gbstorage1";
-        order->addProduct(4553316, 1, Options);
-
-        emit order->signalSetupFinished(_sessionHash);
-    });
-    QObject::connect(&w, &MainWindow::signalSuccess , &a, QApplication::quit);
-
-    QObject::connect(order, &Order::signalError, [=](Response *response) {
-        qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
-    });
-    QObject::connect(&w, &MainWindow::signalError, [=](Response *response) {
-        qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
-    });
-
-
-    order->login(Config::getMerchantCode(), Config::getSecretKey());
     return a.exec();
 }
