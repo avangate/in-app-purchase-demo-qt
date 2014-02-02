@@ -6,15 +6,12 @@
 
 TARGET = cart-demo-qt
 
-CONFIG   += qt crypto c++11
+CONFIG   += qt c++11
 CONFIG   -= app_bundle
 
 QT       += core gui network widgets webkitwidgets
 
-LIBS += -lqca-qt5
-
 TEMPLATE = app
-
 
 SOURCES += main.cpp \
     order.cpp \
@@ -37,6 +34,5 @@ HEADERS += config.h \
 
 FORMS    += mainwindow.ui paymentwindow.ui
     
-
 RESOURCES += \
     resources.qrc

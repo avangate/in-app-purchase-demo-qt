@@ -2,9 +2,9 @@
 #include "paymentwindow.h"
 
 #include <QDebug>
-#include <QtCrypto>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QMessageAuthenticationCode>
 
 #include "config.h"
 using namespace AvangateAPI;
@@ -178,48 +178,17 @@ void Order::parseResponse(QJsonDocument jsonDoc)
 
 void Order::login(const QString Identifier, const QString SecretKey)
 {
-
     QDateTime _sessionStart = QDateTime::currentDateTimeUtc();
     QString now = _sessionStart.toString("yyyy-MM-dd hh:mm:ss");
 
     QByteArray Data;
-
     Data.append(QString::number(Identifier.length())) \
           .append(Identifier) \
           .append(QString::number(now.length())) \
           .append (now);
 
-    QString hash;
-    QCA::Initializer init;
+    QString hash =  QMessageAuthenticationCode::hash(Data, SecretKey.toLatin1(), QCryptographicHash::Md5).toHex();
 
-    QCA::SecureArray key(SecretKey.toLatin1());
-    if( !QCA::isSupported("hmac(md5)") ) {
-        qDebug() << "hmac(md5) is not supported";
-    } else {
-        // create the required object using HMAC with MD5, and an
-        // empty key.
-        QCA::MessageAuthenticationCode hmacObject(  "hmac(md5)", QCA::SecureArray() );
-
-        // create the key
-        QCA::SymmetricKey keyObject(key);
-
-        // set the HMAC object to use the key
-        hmacObject.setup(key);
-        // that could also have been done in the
-        // QCA::MessageAuthenticationCode constructor
-
-        // we split it into two parts to show incremental update
-        QCA::SecureArray SecData(Data);
-        hmacObject.update(SecData);
-
-        // no more updates after calling final.
-        QCA::SecureArray resultArray = hmacObject.final();
-
-        // convert the result into printable hexadecimal.
-        hash = QCA::arrayToHex(resultArray.toByteArray());
-
-        //qDebug ()  << "HMAC(MD5) of" << Data.data() << "with" << key.data() << " = [" << hash.toLatin1().data() << "]\n";
-    }
     m_state = LOGIN;
     emit signalBusy(true);
 
