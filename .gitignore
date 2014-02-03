@@ -4,3 +4,4 @@ Makefile
 ui_mainwindow.h
 *.pro.user
 qrc_resources.cpp
+config.h
