@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <QAction>
+#include <QErrorMessage>
 
 using namespace AvangateAPI;
 
@@ -27,9 +28,12 @@ void MainWindow::showPaymentWindow()
     Order* order = new Order(Config::getUrl(), this);
 
     QObject::connect(order, &Order::signalError, [=](Response *response) {
-        qDebug() << "Error: id[" << response->id () << "]" << response->error ()->code << response->error ()->message;
+        QString mess = QString::fromStdString("id[%1] %2: %3").arg(response->id ()).arg(response->error ()->code).arg(response->error ()->message);
+        qDebug() << "Error: " << mess;
+        emit signalError(mess);
     });
 
+    QObject::connect(this, &MainWindow::signalError, this, &MainWindow::slotError);
 
     QObject::connect(order, &Order::signalSessionStarted, [=](QString _sessionHash) {
         qDebug() << "Session started [" << _sessionHash << "]";
@@ -61,4 +65,12 @@ void MainWindow::showPaymentWindow()
 //    });
 
     order->login(Config::getMerchantCode(), Config::getSecretKey());
+}
+
+void MainWindow::slotError(QString err)
+{
+    QErrorMessage* _err = new QErrorMessage(this);
+
+    _err->setWindowTitle("Error");
+    _err->showMessage(err);
 }

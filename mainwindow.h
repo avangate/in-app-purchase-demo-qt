@@ -18,8 +18,11 @@ public:
 private:
     Ui::MainWindow *ui;
 
+signals:
+    void signalError (QString);
 private slots:
     void showPaymentWindow();
+    void slotError (QString);
 
 };
 
