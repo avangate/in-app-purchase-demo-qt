@@ -4,36 +4,35 @@
 #
 #-------------------------------------------------
 
-QT       += core network gui widgets webkitwidgets
-QT       -= gui
-
 TARGET = cart-demo-qt
-CONFIG   += console crypto
-CONFIG   += c++11
 
+CONFIG   += qt c++11
 CONFIG   -= app_bundle
 
-LIBS += -lqca-qt5
+QT       += core gui network widgets webkitwidgets
 
 TEMPLATE = app
-
 
 SOURCES += main.cpp \
     order.cpp \
     request.cpp \
     response.cpp \
     billingdetails.cpp \
-    mainwindow.cpp
+    paymentwindow.cpp \
+    mainwindow.cpp \
+    paymentdetails.cpp
 
-HEADERS += \
+HEADERS += config.h \
     order.h \
     request.h \
     response.h \
     billingdetails.h \
+    paymentwindow.h \
+    config.h \
     mainwindow.h \
-    config.h
+    paymentdetails.h
 
-FORMS    += mainwindow.ui
-
+FORMS    += mainwindow.ui paymentwindow.ui
+    
 RESOURCES += \
     resources.qrc

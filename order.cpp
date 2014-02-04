@@ -1,24 +1,41 @@
 #include "order.h"
-//#include "order.h"
+#include "paymentwindow.h"
 
 #include <QDebug>
-#include <QtCrypto>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QMessageAuthenticationCode>
 
+#include "config.h"
 using namespace AvangateAPI;
 
-Order::Order(QUrl url, QObject *parent) :
+Order::Order(QUrl url, QWidget *parent) :
     QObject(parent),
-    _cnt(0)
+    _cnt(0),
+    m_url(url),
+    m_currentState (IDLE),
+    m_state (IDLE)
 {
-   //_client = new Order(url, this);
-
-   m_url = url;
    connect (this, &Order::signalError,
             this, &Order::slotError);
+
    connect (this, &Order::signalSuccess,
             this, &Order::slotSuccess);
+
+   connect (this, &Order::signalShowPaymentWindow,
+            this, &Order::slotShowPaymentWindow);
+
+   connect (this, &Order::signalBillingDetailsAdded,
+            this, &Order::slotBillingDetailsAdded);
+
+   connect (this, &Order::signalPaymentDetailsAdded,
+            this, &Order::slotPaymentDetailsAdded);
+
+   connect (this, &Order::signalProductAdded,
+            this, &Order::slotProductAdded);
+
+   connect (this, &Order::signalOrderPlaced,
+            this, &Order::slotOrderPlaced);
 
    networkManager = new QNetworkAccessManager();
 
@@ -34,18 +51,14 @@ void Order::executeRequest (const QString method, QVariantList *params)
     request->setMethod (method);
     request->setParams(*params);
 
-//    if (method == "setBillingDetails") {
-//        QString _sess = params->begin ();
-//        BillingDetails* = params->end<Bikl ();
-//    } else {
-
-//    }
-
     QJsonDocument d;
     d.setObject(request->jsonObject());
 
-//    states()->insert(_cnt, );
+    CallStatus stat {m_state, false};
+    //m_states->setSharable(true);
+    m_states.insert(_cnt, stat);
 
+    //qDebug() << t << stat.call << stat.status;
     _cnt++;
 
     QNetworkRequest* _request = new QNetworkRequest(m_url);
@@ -74,7 +87,7 @@ void Order::handleNetworkData (QNetworkReply *networkReply)
         _err.message = networkReply->errorString();
 
         _r->setError (_err);
-        emit signalError (_r);
+        emit signalError (_r, m_state);
     }
 
     networkReply->deleteLater();
@@ -85,7 +98,7 @@ Order::State Order::state()
     return m_state;
 }
 
-//QMap<ushort, Response>* Order::states()
+//QMap<int, Order::State *> *Order::states()
 //{
 //    return m_states;
 //}
@@ -133,13 +146,16 @@ void Order::parseResponse(QJsonDocument jsonDoc)
     Response* resp = new Response();
     resp->setId (json["id"].toInt ());
     resp->setJsonRPC (json["jsonrpc"].toDouble ());
+
+    State c_state = m_states.value(resp->id()).call;
+
     if (json.contains ("error")) {
         resp->setError (Response::Error {
             json["error"].toObject ()["code"].toInt (),
             json["error"].toObject ()["message"].toString ()
         });
 
-        emit signalError(resp);
+        emit signalError(resp, c_state);
     } else {
         QVariant resultVariant;
         switch (json["result"].type ()) {
@@ -155,81 +171,24 @@ void Order::parseResponse(QJsonDocument jsonDoc)
         }
         resp->setResult (&resultVariant);
 
-
-        switch (m_state) {
-        case State::LOGIN:
-            _sessionHash = resp->result ()->toString();
-            emit signalSessionStarted(_sessionHash);
-            break;
-        case State::ADDPRODUCT:
-        case State::SETBILLINGDETAILS:
-        case State::SETCOUNTRY:
-        case State::SETCURRENCY:
-        case State::SETIP:
-        case State::SETLANGUAGE:
-        case State::SETPAYMENTDETAILS:
-//            if (_result.toBool())  {
-//                emit signalSuccess(m_id, &r_resp);
-//            } else {
-//                Response::Error _e {-1, QString("Unkown error")};
-//                r_resp.error = &_e;
-//                emit signalError(m_id, &r_resp);
-//            }
-            break;
-        case State::PLACEORDER:
-        case State::GETORDER:
-//            Order* o = new Order();
-            break;
-        }
-        emit signalSuccess(resp);
+        emit signalSuccess(resp, c_state);
         /**/
     }
 }
 
 void Order::login(const QString Identifier, const QString SecretKey)
 {
-
     QDateTime _sessionStart = QDateTime::currentDateTimeUtc();
     QString now = _sessionStart.toString("yyyy-MM-dd hh:mm:ss");
 
     QByteArray Data;
-
     Data.append(QString::number(Identifier.length())) \
           .append(Identifier) \
           .append(QString::number(now.length())) \
           .append (now);
 
-    QString hash;
-    QCA::Initializer init;
+    QString hash =  QMessageAuthenticationCode::hash(Data, SecretKey.toLatin1(), QCryptographicHash::Md5).toHex();
 
-    QCA::SecureArray key(SecretKey.toLatin1());
-    if( !QCA::isSupported("hmac(md5)") ) {
-        qDebug() << "hmac(md5) is not supported";
-    } else {
-        // create the required object using HMAC with MD5, and an
-        // empty key.
-        QCA::MessageAuthenticationCode hmacObject(  "hmac(md5)", QCA::SecureArray() );
-
-        // create the key
-        QCA::SymmetricKey keyObject(key);
-
-        // set the HMAC object to use the key
-        hmacObject.setup(key);
-        // that could also have been done in the
-        // QCA::MessageAuthenticationCode constructor
-
-        // we split it into two parts to show incremental update
-        QCA::SecureArray SecData(Data);
-        hmacObject.update(SecData);
-
-        // no more updates after calling final.
-        QCA::SecureArray resultArray = hmacObject.final();
-
-        // convert the result into printable hexadecimal.
-        hash = QCA::arrayToHex(resultArray.toByteArray());
-
-        //qDebug ()  << "HMAC(MD5) of" << Data.data() << "with" << key.data() << " = [" << hash.toLatin1().data() << "]\n";
-    }
     m_state = LOGIN;
     emit signalBusy(true);
 
@@ -237,9 +196,6 @@ void Order::login(const QString Identifier, const QString SecretKey)
     _params->append (Identifier);
     _params->append (now);
     _params->append (hash);
-//    _params << Identifier;
-//    _params << now;
-//    _params << hash;
 
     executeRequest(getCallMethod(m_state), _params);
 }
@@ -338,17 +294,113 @@ void Order::placeOrder()
     executeRequest(getCallMethod(m_state), _params);
 }
 
-void Order::slotError ( Response* response)
+void Order::slotError (Response* response, Order::State c_state)
 {
     emit signalBusy(false);
-//    states()->insert(id, *response);
 }
 
-void Order::slotSuccess (Response* response)
+void Order::slotSuccess (Response* response, Order::State c_state)
 {
     m_state = IDLE;
     emit signalBusy(false);
 
-    qDebug() << "Success:" << response->id ();
-//    states()->insert(id, *response);
+    switch (c_state) {
+    case State::LOGIN:
+        _sessionHash = response->result()->toString();
+        m_currentState |= LOGIN;
+        emit signalSessionStarted(_sessionHash);
+        break;
+    case State::ADDPRODUCT:
+        emit signalProductAdded();
+        break;
+    case State::SETBILLINGDETAILS:
+        emit signalBillingDetailsAdded();
+        break;
+    case State::SETPAYMENTDETAILS:
+        //qDebug() << response->result()->toString();
+        emit signalPaymentDetailsAdded();
+        break;
+    case State::PLACEORDER:
+//        qDebug() << response->result()->t;
+        emit signalOrderPlaced();
+        break;
+    case State::SETCOUNTRY:
+    case State::SETCURRENCY:
+    case State::SETIP:
+    case State::SETLANGUAGE:
+    case State::GETORDER:
+        break;
+    }
+
+    qDebug() << "last state" << c_state;
+    if (
+         ((m_currentState & State::LOGIN) == State::LOGIN) &&
+         ((m_currentState & State::SETBILLINGDETAILS) == State::SETBILLINGDETAILS) &&
+         ((m_currentState & State::ADDPRODUCT) == State::ADDPRODUCT) &&
+         ((m_currentState & State::SETPAYMENTDETAILS) != State::SETPAYMENTDETAILS)
+            ) {
+
+        emit signalSetupFinished();
+    }
+    qDebug() << "Success on call:" << response->id () << "FULL state:" << m_currentState;
+ }
+
+void  Order::setPaymentDetails (PaymentDetails *Payment)
+{
+    m_state = SETPAYMENTDETAILS;
+    emit signalBusy(true);
+
+    // conditional about PCI compliance
+    if (Payment == 0) {
+        // this is for no PCI compliance - showing webview with card form
+        emit signalShowPaymentWindow();
+    } else {
+        // PCI compliant
+        QVariantMap p;
+        p.insert("Type", Payment->type());
+        p.insert("Currency", Payment->currency());
+        p.insert("CustomerIP", Payment->customerIP());
+
+        QVariantList* _params = new QVariantList();
+        _params->append(_sessionHash);
+        _params->append(p);
+
+        executeRequest(getCallMethod(m_state), _params);
+    }
+}
+
+void Order::slotShowPaymentWindow()
+{
+    PaymentWindow* w = new PaymentWindow(_cnt);
+
+    w->slotSetSession(_sessionHash);
+//    connect(this, &Order::signalSessionStarted, w, &PaymentWindow::slotSetSession);
+//    connect(this, &Order::signalSetupFinished, w, &PaymentWindow::show);
+
+    connect(w, &PaymentWindow::signalError, this, &Order::slotError);
+    connect(this, &Order::signalError, w, &PaymentWindow::slotError);
+
+    connect(w, &PaymentWindow::signalSuccess, this, &Order::slotSuccess);
+
+    w->show();
+}
+
+void Order::slotProductAdded()
+{
+    m_currentState |= ADDPRODUCT;
+}
+
+void Order::slotBillingDetailsAdded()
+{
+    m_currentState |= SETBILLINGDETAILS;
+}
+
+void Order::slotPaymentDetailsAdded()
+{
+    m_currentState |= SETPAYMENTDETAILS;
+}
+
+void Order::slotOrderPlaced()
+{
+    m_currentState |= PLACEORDER;
 }

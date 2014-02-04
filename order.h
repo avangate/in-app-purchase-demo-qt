@@ -8,6 +8,7 @@
 
 //#include "client.h"
 #include "billingdetails.h"
+#include "paymentdetails.h"
 #include "response.h"
 #include "request.h"
 
@@ -21,45 +22,44 @@ class Order : public QObject
 
 public:
     enum State {
-        IDLE,
+        IDLE = 0,
         LOGIN = 1,
-        SETLANGUAGE,
-        SETCOUNTRY,
-        SETCURRENCY,
-        SETIP,
-        SETBILLINGDETAILS,
-        SETPAYMENTDETAILS,
-        ADDPRODUCT,
-        PLACEORDER,
-        GETORDER
+        SETLANGUAGE = 2,
+        SETCOUNTRY = 4,
+        SETCURRENCY = 8,
+        SETIP = 16,
+        SETBILLINGDETAILS = 32,
+        SETPAYMENTDETAILS = 64,
+        ADDPRODUCT = 128,
+        PLACEORDER = 256,
+        GETORDER = 1024
     };
 
-//    struct Response {
-//        Order::State call;
-//        Request* request;
-//        Response* response;
-//    };
+    struct CallStatus {
+        Order::State call;
+        bool status;
+    };
 
 private:
 
+    int m_currentState;
     QString _sessionHash;
     QDateTime _sessionStart;
-    ushort _cnt;
+    int _cnt;
     mutable State m_state;
-//    QMap<ushort, Response>* m_states;
+    QMap<int, CallStatus> m_states;
     QUrl m_url;
 
     QNetworkAccessManager* networkManager;
-    //QNetworkRequest* Request;
 
     void parseResponse(QJsonDocument jsonDoc);
     void executeRequest (const QString method, QVariantList *params);
 
 public:
-    explicit Order(QUrl url, QObject *parent = 0);
+    explicit Order(QUrl url, QWidget *parent = 0);
 
     Order::State state();
-//    QMap<ushort, Response>* states();
+    //QMap<int, State *> *states();
 
     static QString getCallMethod(Order::State m_state);
 
@@ -71,18 +71,31 @@ public:
     void setIP (const QString IP);
     void addProduct (const quint32 ProductId, quint8 Quantity, QStringList PriceOptions);
     void setBillingDetails (BillingDetails *Billing);
+    void setPaymentDetails (PaymentDetails *Payment = 0);
     void placeOrder ();
 /**/
 signals:
     void signalSessionStarted(QString sessHash);
     void signalBusy(bool) const;
-    void signalSuccess(Response*);
-    void signalError(Response*);
-    void signalSetupFinished(QString);
+    void signalSuccess(Response*, State);
+    void signalError(Response*, State);
+    void signalSetupFinished();
+
+    void signalProductAdded();
+    void signalBillingDetailsAdded();
+    void signalPaymentDetailsAdded();
+    void signalShowPaymentWindow();
+    void signalOrderPlaced();
 
 public slots:
-    void slotError(Response*);
-    void slotSuccess(Response*);
+    void slotError(Response*, State);
+    void slotSuccess(Response*, State);
+
+    void slotProductAdded();
+    void slotBillingDetailsAdded();
+    void slotPaymentDetailsAdded();
+    void slotShowPaymentWindow();
+    void slotOrderPlaced();
 
 private slots:
     void handleNetworkData(QNetworkReply *networkReply);
