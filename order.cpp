@@ -344,7 +344,7 @@ void Order::slotSuccess (Response* response, Order::State c_state)
 
         emit signalSetupFinished();
     }
-    qDebug() << "Success on call:" << response->id () << "FULL state:" << m_currentState;
+    qDebug() << "Success on call:" << response->id () << "FULL state:" << getActiveStatesLabels(m_currentState);
  }
 
 void  Order::setPaymentDetails (PaymentDetails *Payment)
@@ -405,4 +405,74 @@ void Order::slotPaymentDetailsAdded()
 void Order::slotOrderPlaced()
 {
     m_currentState |= PLACEORDER;
+}
+
+QString Order::getStateName(State state)
+{
+    QString label;
+    switch (state) {
+    case State::LOGIN:
+        label = "Login";
+        break;
+    case State::ADDPRODUCT:
+        label = "Product added";
+        break;
+    case State::SETBILLINGDETAILS:
+        label = "Billing Details set";
+        break;
+    case State::SETCOUNTRY:
+        label = "Country set";
+        break;
+    case State::SETCURRENCY:
+        label = "Currency set";
+        break;
+    case State::SETIP:
+        label = "Ip set";
+        break;
+    case State::SETLANGUAGE:
+        label = "Language set";
+        break;
+    case State::SETPAYMENTDETAILS:
+        label = "Payment Details set";
+        break;
+    case State::PLACEORDER:
+        label = "Order placed";
+        break;
+    }
+
+    return label;
+}
+
+QStringList Order::getActiveStatesLabels(int state)
+{
+    QStringList stateLabels;
+    if ((state & LOGIN) == LOGIN) {
+        stateLabels << getStateName(LOGIN);
+    }
+    if ((state & ADDPRODUCT) == ADDPRODUCT) {
+        stateLabels << getStateName(ADDPRODUCT);
+    }
+    if ((state & SETBILLINGDETAILS) == SETBILLINGDETAILS) {
+        stateLabels << getStateName(SETBILLINGDETAILS);
+    }
+    if ((state & SETPAYMENTDETAILS) == SETPAYMENTDETAILS) {
+        stateLabels << getStateName(SETPAYMENTDETAILS);
+    }
+    if ((state & SETCOUNTRY) == SETCOUNTRY) {
+        stateLabels << getStateName(SETCOUNTRY);
+    }
+    if ((state & SETCURRENCY) == SETCURRENCY) {
+        stateLabels << getStateName(SETCURRENCY);
+    }
+    if ((state & SETLANGUAGE) == SETLANGUAGE) {
+        stateLabels << getStateName(SETLANGUAGE);
+    }
+    if ((state & SETIP) == SETIP) {
+        stateLabels << getStateName(SETIP);
+    }
+    if ((state & PLACEORDER) == PLACEORDER) {
+        stateLabels << getStateName(PLACEORDER);
+    }
+
+    return stateLabels;
 }
