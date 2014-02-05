@@ -7,6 +7,21 @@
 
 namespace AvangateAPI
 {
+
+enum State {
+    IDLE = 0,
+    LOGIN = 1,
+    SETLANGUAGE = 2,
+    SETCOUNTRY = 4,
+    SETCURRENCY = 8,
+    SETIP = 16,
+    SETBILLINGDETAILS = 32,
+    SETPAYMENTDETAILS = 64,
+    ADDPRODUCT = 128,
+    PLACEORDER = 256,
+    GETORDER = 1024
+};
+
 class Response
 {
 public:

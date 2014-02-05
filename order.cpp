@@ -1,20 +1,18 @@
 #include "order.h"
-#include "paymentwindow.h"
 
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QMessageAuthenticationCode>
 
-#include "config.h"
 using namespace AvangateAPI;
 
 Order::Order(QUrl url, QWidget *parent) :
     QObject(parent),
-    _cnt(0),
-    m_url(url),
     m_currentState (IDLE),
-    m_state (IDLE)
+    _cnt(0),
+    m_state (IDLE),
+    m_url(url)
 {
    connect (this, &Order::signalError,
             this, &Order::slotError);
@@ -36,6 +34,8 @@ Order::Order(QUrl url, QWidget *parent) :
 
    connect (this, &Order::signalOrderPlaced,
             this, &Order::slotOrderPlaced);
+
+   w = new PaymentWindow(parent);
 
    networkManager = new QNetworkAccessManager();
 
@@ -95,17 +95,17 @@ void Order::handleNetworkData (QNetworkReply *networkReply)
     networkReply->deleteLater();
 }
 
-Order::State Order::state()
+State Order::state()
 {
     return m_state;
 }
 
-//QMap<int, Order::State *> *Order::states()
+//QMap<int, State *> *Order::states()
 //{
 //    return m_states;
 //}
 
-QString Order::getCallMethod (Order::State m_state)
+QString Order::getCallMethod (State m_state)
 {
     QString method;
     switch (m_state) {
@@ -135,6 +135,12 @@ QString Order::getCallMethod (Order::State m_state)
         break;
     case State::PLACEORDER:
         method = "placeOrder";
+        break;
+    case State::GETORDER:
+        method = "getOrder";
+        break;
+    case State::IDLE:
+    default:
         break;
     }
 
@@ -169,6 +175,17 @@ void Order::parseResponse(QJsonDocument jsonDoc)
             break;
         case QJsonValue::Object:
             resultVariant = QVariant::fromValue(json["result"].toObject ().toVariantMap ());
+            break;
+        case QJsonValue::Null:
+            resultVariant = QVariant::fromValue(NULL);
+            break;
+        case QJsonValue::Double:
+            resultVariant = QVariant::fromValue(json["result"].toDouble());
+            break;
+        case QJsonValue::Array:
+            resultVariant = QVariant::fromValue(json["result"].toArray());
+            break;
+        case QJsonValue::Undefined:
             break;
         }
         resp->setResult (&resultVariant);
@@ -296,12 +313,13 @@ void Order::placeOrder()
     executeRequest(getCallMethod(m_state), _params);
 }
 
-void Order::slotError (Response* response, Order::State c_state)
+void Order::slotError (Response* response, State c_state)
 {
     emit signalBusy(false);
+    qDebug() << response->error()->message << "in state" << getStateName(c_state);
 }
 
-void Order::slotSuccess (Response* response, Order::State c_state)
+void Order::slotSuccess (Response* response, State c_state)
 {
     m_state = IDLE;
     emit signalBusy(false);
@@ -327,10 +345,21 @@ void Order::slotSuccess (Response* response, Order::State c_state)
         emit signalOrderPlaced();
         break;
     case State::SETCOUNTRY:
+        m_currentState |= SETCOUNTRY;
+        break;
     case State::SETCURRENCY:
+        m_currentState |= SETCURRENCY;
+        break;
     case State::SETIP:
+        m_currentState |= SETIP;
+        break;
     case State::SETLANGUAGE:
+        m_currentState |= SETLANGUAGE;
+        break;
     case State::GETORDER:
+        m_currentState |= GETORDER;
+        break;
+    case State::IDLE:
         break;
     }
 
@@ -373,8 +402,8 @@ void  Order::setPaymentDetails (PaymentDetails *Payment)
 
 void Order::slotShowPaymentWindow()
 {
-    PaymentWindow* w = new PaymentWindow(_cnt);
-
+    w->show();
+    w->setId(_cnt);
     w->slotSetSession(_sessionHash);
 //    connect(this, &Order::signalSessionStarted, w, &PaymentWindow::slotSetSession);
 //    connect(this, &Order::signalSetupFinished, w, &PaymentWindow::show);
@@ -383,8 +412,6 @@ void Order::slotShowPaymentWindow()
     connect(this, &Order::signalError, w, &PaymentWindow::slotError);
 
     connect(w, &PaymentWindow::signalSuccess, this, &Order::slotSuccess);
-
-    w->show();
 }
 
 void Order::slotProductAdded()
@@ -437,6 +464,12 @@ QString Order::getStateName(State state)
         break;
     case State::PLACEORDER:
         label = "Order placed";
+        break;
+    case State::IDLE:
+        label = "Idle";
+        break;
+    case State::GETORDER:
+        label = "Get order";
         break;
     }
 

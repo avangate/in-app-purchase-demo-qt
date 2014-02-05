@@ -7,12 +7,14 @@
 #include <QNetworkDiskCache>
 
 #include "response.h"
-#include "order.h"
+#include "config.h"
 
 namespace Ui {
 class PaymentWindow;
 }
-using namespace AvangateAPI;
+
+namespace AvangateAPI
+{
 
 class PaymentWindow : public QDialog
 {
@@ -23,8 +25,10 @@ private:
     QString _session;
 
 public:
-    explicit PaymentWindow(ushort callId, QWidget *parent = 0);
+    explicit PaymentWindow(QWidget *parent = 0);
     ~PaymentWindow();
+
+    void setId(ushort id);
 
     void slotUrlChanged (const QUrl &url);
 
@@ -32,8 +36,8 @@ private:
     Ui::PaymentWindow *ui;
 
 signals:
-    void signalError(Response*, Order::State);
-    void signalSuccess(Response*, Order::State);
+    void signalError(Response*, State);
+    void signalSuccess(Response*, State);
     void signalOrderPlaced(QString, QString);
     void signalPaymentDetailsAdded();
 
@@ -48,4 +52,5 @@ public slots:
 
 };
 
+}
 #endif // PAYMENTWINDOW_H
