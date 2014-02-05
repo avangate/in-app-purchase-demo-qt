@@ -12,7 +12,10 @@
 namespace Ui {
 class PaymentWindow;
 }
-using namespace AvangateAPI;
+
+
+namespace AvangateAPI
+{
 
 class PaymentWindow : public QDialog
 {
@@ -48,4 +51,5 @@ public slots:
 
 };
 
+}
 #endif // PAYMENTWINDOW_H

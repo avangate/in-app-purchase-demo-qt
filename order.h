@@ -15,7 +15,6 @@
 namespace AvangateAPI
 {
 
-
 class Order : public QObject
 {
     Q_OBJECT
