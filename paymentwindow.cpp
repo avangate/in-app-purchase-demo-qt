@@ -1,5 +1,4 @@
 #include "paymentwindow.h"
-#include "config.h"
 #include "ui_paymentwindow.h"
 
 #include <QStandardPaths>
@@ -12,10 +11,9 @@
 
 using namespace AvangateAPI;
 
-PaymentWindow::PaymentWindow(ushort callId, QWidget *parent) :
+PaymentWindow::PaymentWindow(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::PaymentWindow),
-    m_id(callId)
+    ui(new Ui::PaymentWindow)
 {
     ui->setupUi(this);
 
@@ -48,7 +46,7 @@ void PaymentWindow::slotHandleReply (QNetworkReply *reply)
             );
             madeup->setId(6);
 
-            emit signalError(madeup, Order::SETPAYMENTDETAILS);
+            emit signalError(madeup, SETPAYMENTDETAILS);
         }     
         if (q.queryItemValue("status") == "AUTHRECEIVED" || q.queryItemValue("status") == "PENDING" || q.queryItemValue("status") == "TEST") {
             QString refNo = q.queryItemValue("refNo");
@@ -69,7 +67,7 @@ void PaymentWindow::slotUnsupportedContent (QNetworkReply * reply)
 
 void PaymentWindow::slotUrlChanged (const QUrl& url)
 {
-    //qDebug() << "url changes:" << url;
+    qDebug() << "url changes:" << url;
 }
 
 void PaymentWindow::slotError(Response* err)
@@ -118,7 +116,7 @@ void PaymentWindow::slotPaymentDetailsAdded()
     madeUp.setId(m_id);
     madeUp.setResult(&v);
 
-    emit signalSuccess (&madeUp, Order::SETPAYMENTDETAILS);
+    emit signalSuccess (&madeUp, SETPAYMENTDETAILS);
 }
 
 void PaymentWindow::slotOrderPlaced(QString refNo, QString status)
@@ -144,10 +142,15 @@ void PaymentWindow::slotOrderPlaced(QString refNo, QString status)
     madeUp.setResult(&v);
 
     close();
-    emit signalSuccess (&madeUp, Order::SETPAYMENTDETAILS);
+    emit signalSuccess (&madeUp, SETPAYMENTDETAILS);
 }
 
 PaymentWindow::~PaymentWindow()
 {
     delete ui;
+}
+
+void PaymentWindow::setId(ushort id)
+{
+    m_id = id;
 }

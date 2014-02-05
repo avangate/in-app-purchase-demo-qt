@@ -6,11 +6,12 @@
 #include <QtNetwork>
 #include <QVariantMap>
 
-//#include "client.h"
+#include "paymentwindow.h"
 #include "billingdetails.h"
 #include "paymentdetails.h"
 #include "response.h"
 #include "request.h"
+#include "config.h"
 
 namespace AvangateAPI
 {
@@ -20,27 +21,15 @@ class Order : public QObject
     Q_OBJECT
 
 public:
-    enum State {
-        IDLE = 0,
-        LOGIN = 1,
-        SETLANGUAGE = 2,
-        SETCOUNTRY = 4,
-        SETCURRENCY = 8,
-        SETIP = 16,
-        SETBILLINGDETAILS = 32,
-        SETPAYMENTDETAILS = 64,
-        ADDPRODUCT = 128,
-        PLACEORDER = 256,
-        GETORDER = 1024
-    };
 
     struct CallStatus {
-        Order::State call;
+        State call;
         bool status;
     };
 
 private:
 
+    PaymentWindow* w;
     int m_currentState;
     QString _sessionHash;
     QDateTime _sessionStart;
@@ -57,10 +46,10 @@ private:
 public:
     explicit Order(QUrl url, QWidget *parent = 0);
 
-    Order::State state();
+    State state();
     //QMap<int, State *> *states();
 
-    static QString getCallMethod(Order::State m_state);
+    static QString getCallMethod(State m_state);
     static QString getStateName(State state);
     static QStringList getActiveStatesLabels(int state);
 

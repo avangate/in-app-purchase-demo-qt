@@ -5,9 +5,6 @@
 #include <QJsonDocument>
 #include <QMessageAuthenticationCode>
 
-#include "config.h"
-#include "paymentwindow.h"
-
 using namespace AvangateAPI;
 
 Order::Order(QUrl url, QWidget *parent) :
@@ -37,6 +34,8 @@ Order::Order(QUrl url, QWidget *parent) :
 
    connect (this, &Order::signalOrderPlaced,
             this, &Order::slotOrderPlaced);
+
+   w = new PaymentWindow(parent);
 
    networkManager = new QNetworkAccessManager();
 
@@ -96,17 +95,17 @@ void Order::handleNetworkData (QNetworkReply *networkReply)
     networkReply->deleteLater();
 }
 
-Order::State Order::state()
+State Order::state()
 {
     return m_state;
 }
 
-//QMap<int, Order::State *> *Order::states()
+//QMap<int, State *> *Order::states()
 //{
 //    return m_states;
 //}
 
-QString Order::getCallMethod (Order::State m_state)
+QString Order::getCallMethod (State m_state)
 {
     QString method;
     switch (m_state) {
@@ -314,13 +313,13 @@ void Order::placeOrder()
     executeRequest(getCallMethod(m_state), _params);
 }
 
-void Order::slotError (Response* response, Order::State c_state)
+void Order::slotError (Response* response, State c_state)
 {
     emit signalBusy(false);
     qDebug() << response->error()->message << "in state" << getStateName(c_state);
 }
 
-void Order::slotSuccess (Response* response, Order::State c_state)
+void Order::slotSuccess (Response* response, State c_state)
 {
     m_state = IDLE;
     emit signalBusy(false);
@@ -403,9 +402,8 @@ void  Order::setPaymentDetails (PaymentDetails *Payment)
 
 void Order::slotShowPaymentWindow()
 {
-
-    PaymentWindow* w = new PaymentWindow(_cnt);
-
+    w->show();
+    w->setId(_cnt);
     w->slotSetSession(_sessionHash);
 //    connect(this, &Order::signalSessionStarted, w, &PaymentWindow::slotSetSession);
 //    connect(this, &Order::signalSetupFinished, w, &PaymentWindow::show);
@@ -414,8 +412,6 @@ void Order::slotShowPaymentWindow()
     connect(this, &Order::signalError, w, &PaymentWindow::slotError);
 
     connect(w, &PaymentWindow::signalSuccess, this, &Order::slotSuccess);
-
-    w->show();
 }
 
 void Order::slotProductAdded()
