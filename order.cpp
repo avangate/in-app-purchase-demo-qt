@@ -41,6 +41,8 @@ Order::Order(QUrl url, QWidget *parent) :
 
    connect(networkManager, &QNetworkAccessManager::finished,
               this, &Order::handleNetworkData);
+
+   qDebug() << "Connecting to:" << m_url.toString();
 }
 
 void Order::executeRequest (const QString method, QVariantList *params)
@@ -64,7 +66,7 @@ void Order::executeRequest (const QString method, QVariantList *params)
     QNetworkRequest* _request = new QNetworkRequest(m_url);
     _request->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    qDebug() << "Request:" << d.toJson();
+    //qDebug() << "Request:" << d.toJson();
 
     networkManager->post(*_request, d.toJson());
 }
@@ -75,7 +77,7 @@ void Order::handleNetworkData (QNetworkReply *networkReply)
         QByteArray c(networkReply->readAll());
 
         QJsonDocument d = QJsonDocument::fromJson(c);
-        qDebug() << "Response:" << d.toJson();
+        //qDebug() << "Response:" << d.toJson();
 
         parseResponse(d);
 
@@ -332,7 +334,7 @@ void Order::slotSuccess (Response* response, Order::State c_state)
         break;
     }
 
-    qDebug() << "last state" << c_state;
+//    qDebug() << "last state" << c_state;
     if (
          ((m_currentState & State::LOGIN) == State::LOGIN) &&
          ((m_currentState & State::SETBILLINGDETAILS) == State::SETBILLINGDETAILS) &&
