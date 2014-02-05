@@ -62,6 +62,8 @@ public:
     //QMap<int, State *> *states();
 
     static QString getCallMethod(Order::State m_state);
+    static QString getStateName(State state);
+    static QStringList getActiveStatesLabels(int state);
 
     void login(const QString Identifier, const QString SecretKey);
 /**/

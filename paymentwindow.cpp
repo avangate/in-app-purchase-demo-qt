@@ -15,7 +15,7 @@ using namespace AvangateAPI;
 PaymentWindow::PaymentWindow(ushort callId, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::PaymentWindow),
-    m_id()
+    m_id(callId)
 {
     ui->setupUi(this);
 
@@ -30,8 +30,8 @@ PaymentWindow::PaymentWindow(ushort callId, QWidget *parent) :
 
 void PaymentWindow::slotHandleReply (QNetworkReply *reply)
 {
-    qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) << reply->rawHeaderPairs ();
-    qDebug() << reply->url();
+    //qDebug() << reply->attribute(QNetworkRequest::HttpStatusCodeAttribute) << reply->rawHeaderPairs ();
+    qDebug() << reply->url().toString();
 
     if ( reply->url().scheme() == "urn" &&  reply->url().path() == "return") {
         // received redirect back from avangate
@@ -69,7 +69,7 @@ void PaymentWindow::slotUnsupportedContent (QNetworkReply * reply)
 
 void PaymentWindow::slotUrlChanged (const QUrl& url)
 {
-    qDebug() << "url changes:" << url;
+    //qDebug() << "url changes:" << url;
 }
 
 void PaymentWindow::slotError(Response* err)
@@ -105,7 +105,7 @@ void PaymentWindow::slotSetSession(QString session)
     u.setPath(path);
     u.setQuery(query);
 
-    ui->webView->setHtml(QString(html).arg (u.toString()).arg(_session));
+    ui->webView->setHtml(QString(html).arg (u.toString()).arg(_session).arg("CCNOPCI").arg("eur").arg("ro"));
 }
 
 void PaymentWindow::slotPaymentDetailsAdded()

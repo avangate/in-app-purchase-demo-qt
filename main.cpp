@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     
-    Config::devel = false;
+    Config::devel = true;
     
     MainWindow w;
     w.show();
