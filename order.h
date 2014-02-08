@@ -61,7 +61,8 @@ public:
     void setIP (const QString IP);
     void addProduct (const quint32 ProductId, quint8 Quantity, QStringList PriceOptions);
     void setBillingDetails (BillingDetails *Billing);
-    void setPaymentDetails (PaymentDetails *Payment = 0);
+    void setPaymentDetails (PaymentDetails *Payment);
+    void setPaymentDetails ();
     void placeOrder ();
 /**/
 signals:

@@ -47,6 +47,7 @@ public slots:
     void slotSetSession (QString);
     void slotOrderPlaced (QString, QString);
     void slotPaymentDetailsAdded ();
+    void slotShowProgress ();
     void slotSuccess ();
     void slotError (Response* err);
 

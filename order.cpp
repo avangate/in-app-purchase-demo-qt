@@ -42,7 +42,34 @@ Order::Order(QUrl url, QWidget *parent) :
    connect(networkManager, &QNetworkAccessManager::finished,
               this, &Order::handleNetworkData);
 
+   QObject::connect(this, &Order::signalSessionStarted, [=](QString _sessionHash) {
+       qDebug() << "Session started [" << _sessionHash << "]";
+
+       setLanguage("en");
+       setCurrency("eur");
+
+       BillingDetails* b = new BillingDetails();
+       b->setFirstName("API");
+       b->setLastName("TEST");
+       b->setEmail("sandbox.avangate@avangate.com");
+       b->setCity("Bucharest");
+       b->setAddress("Some Street, no 666");
+       b->setCountry("ro");
+       b->setState("Bucharest");
+       b->setPostalCode("101222");
+
+       setBillingDetails(b);
+
+       addProduct(Config::getProductId(), 1, Config::getPriceOptions());
+
+       setPaymentDetails();
+   });
+
+   //connect(this, &Order::signalSetupFinished, this, &Order::setPaymentDetails);
+   connect(this, &Order::signalPaymentDetailsAdded, this, &Order::placeOrder);
+
    qDebug() << "Connecting to:" << m_url.toString();
+   login(Config::getMerchantCode(), Config::getSecretKey());
 }
 
 void Order::executeRequest (const QString method, QVariantList *params)
@@ -374,7 +401,14 @@ void Order::slotSuccess (Response* response, State c_state)
         emit signalSetupFinished();
     }
     qDebug() << "Success on call:" << response->id () << "FULL state:" << getActiveStatesLabels(m_currentState);
- }
+}
+
+void  Order::setPaymentDetails () {
+    m_state = SETPAYMENTDETAILS;
+    emit signalBusy(true);
+
+    emit signalShowPaymentWindow();
+}
 
 void  Order::setPaymentDetails (PaymentDetails *Payment)
 {
