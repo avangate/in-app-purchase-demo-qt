@@ -21,6 +21,7 @@ PaymentWindow::PaymentWindow(QWidget *parent) :
 //            this, &PaymentWindow::slotUnsupportedContent);
     connect(ui->webView->page()->networkAccessManager (), &QNetworkAccessManager::finished,
                          this, &PaymentWindow::slotHandleReply);
+
     connect(this, &PaymentWindow::signalOrderPlaced, this, &PaymentWindow::slotOrderPlaced);
     connect(this, &PaymentWindow::signalPaymentDetailsAdded, this, &PaymentWindow::slotPaymentDetailsAdded);
     connect(this, &PaymentWindow::signalError, this, &PaymentWindow::slotError);
@@ -104,6 +105,9 @@ void PaymentWindow::slotSetSession(QString session)
     u.setQuery(query);
 
     ui->webView->setHtml(QString(html).arg (u.toString()).arg(_session).arg("CCNOPCI").arg("eur").arg("ro"));
+
+    connect(ui->webView, &QWebView::loadStarted,
+            this, &PaymentWindow::slotShowProgress);
 }
 
 void PaymentWindow::slotPaymentDetailsAdded()
@@ -143,6 +147,12 @@ void PaymentWindow::slotOrderPlaced(QString refNo, QString status)
 
     close();
     emit signalSuccess (&madeUp, SETPAYMENTDETAILS);
+}
+
+void PaymentWindow::slotShowProgress()
+{
+    close();
+    qDebug() << "started";
 }
 
 PaymentWindow::~PaymentWindow()

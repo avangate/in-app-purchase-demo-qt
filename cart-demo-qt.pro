@@ -6,10 +6,18 @@
 
 TARGET = cart-demo-qt
 
-CONFIG   += qt c++11
+CONFIG   += c++11 qwt
 CONFIG   -= app_bundle
 
-QT       += core gui network widgets webkitwidgets
+QT       -= opengl \
+            qml \
+            quick \
+            multimedia \
+            multimediawidgets \
+            sensors \
+            printsupport \
+            sql  
+QT       += network widgets webkitwidgets
 
 TEMPLATE = app
 
@@ -20,7 +28,9 @@ SOURCES += main.cpp \
     billingdetails.cpp \
     paymentwindow.cpp \
     mainwindow.cpp \
-    paymentdetails.cpp
+    paymentdetails.cpp \
+    tvplot.cpp
+
 
 HEADERS += config.h \
     order.h \
@@ -30,9 +40,10 @@ HEADERS += config.h \
     paymentwindow.h \
     config.h \
     mainwindow.h \
-    paymentdetails.h
+    paymentdetails.h \
+    tvplot.h
 
-FORMS    += mainwindow.ui paymentwindow.ui
+FORMS    += paymentwindow.ui mainwindow.ui
     
 RESOURCES += \
     resources.qrc
