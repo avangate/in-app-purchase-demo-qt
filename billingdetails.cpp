@@ -7,7 +7,8 @@ BillingDetails::BillingDetails(QObject *parent) :
 {
 }
 
-BillingDetails::BillingDetails(const BillingDetails& toCopy)
+BillingDetails::BillingDetails(const BillingDetails& toCopy) :
+    QObject()
 {
     setFirstName(toCopy.FirstName());
     setLastName(toCopy.LastName());

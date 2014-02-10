@@ -52,17 +52,17 @@ void Histogram::setValues( uint numValues, const double *values )
 TVPlot::TVPlot( QWidget *parent ):
     QwtPlot( parent )
 {
-    setTitle( "Watching TV during a weekend" );
+    setTitle( "An important graph" );
 
     QwtPlotCanvas *canvas = new QwtPlotCanvas();
     canvas->setPalette( Qt::gray );
-    canvas->setBorderRadius( 10 );
+    //canvas->setBorderRadius( 10 );
     setCanvas( canvas );
 
     plotLayout()->setAlignCanvasToScales( true );
 
-    setAxisTitle( QwtPlot::yLeft, "Number of People" );
-    setAxisTitle( QwtPlot::xBottom, "Number of Hours" );
+    setAxisTitle( QwtPlot::yLeft, "The whys" );
+    setAxisTitle( QwtPlot::xBottom, "The exes" );
 
     QwtLegend *legend = new QwtLegend;
     legend->setDefaultItemMode( QwtLegendData::Checkable );
@@ -108,15 +108,15 @@ void TVPlot::populate()
     grid->setMajorPen( Qt::black, 0, Qt::DotLine );
     grid->attach( this );
 
-    const double juneValues[] = { 7, 19, 24, 32, 10, 5, 3 };
-    const double novemberValues[] = { 4, 15, 22, 34, 13, 8, 4 };
+    const double juneValues[] = { 7, 19, 24, 32, 26, 23, 18, 8, 4, 3 };
+    const double novemberValues[] = { 4, 15, 22, 34, 23, 18, 14, 8, 4, 4 };
 
-    Histogram *histogramJune = new Histogram( "Summer", Qt::red );
+    Histogram *histogramJune = new Histogram( "Some", Qt::red );
     histogramJune->setValues(
         sizeof( juneValues ) / sizeof( double ), juneValues );
     histogramJune->attach( this );
 
-    Histogram *histogramNovember = new Histogram( "Winter", Qt::blue );
+    Histogram *histogramNovember = new Histogram( "Others", Qt::blue );
     histogramNovember->setValues(
         sizeof( novemberValues ) / sizeof( double ), novemberValues );
     histogramNovember->attach( this );
@@ -125,7 +125,7 @@ void TVPlot::populate()
 void TVPlot::exportPlot()
 {
     QwtPlotRenderer renderer;
-    renderer.exportTo( this, "tvplot.pdf" );
+    renderer.exportTo( this, "plot.pdf" );
 }
 
 void TVPlot::setMode( int mode )
