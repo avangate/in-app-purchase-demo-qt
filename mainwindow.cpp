@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     d_plot = new TVPlot( this );
     setCentralWidget( d_plot );
 
@@ -27,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     typeBox->addItem( "Columns" );
     typeBox->addItem( "Lines" );
     typeBox->addItem( "Column Symbol" );
-    typeBox->setCurrentIndex( typeBox->count() - 1 );
+    typeBox->setCurrentIndex( 0 );
     typeBox->setSizePolicy( QSizePolicy::Fixed, QSizePolicy::Fixed );
 
     QToolButton *btnExport = new QToolButton( toolBar );
@@ -42,7 +43,6 @@ MainWindow::MainWindow(QWidget *parent) :
     d_plot->setMode( typeBox->currentIndex() );
     connect( typeBox, SIGNAL( currentIndexChanged( int ) ),
              d_plot, SLOT( setMode( int ) ) );
-
 
     connect(ui->actionNew_Purchase, &QAction::triggered, this, &MainWindow::showPaymentWindow);
     connect(ui->actionQuit, &QAction::triggered, this, &QMainWindow::close);
