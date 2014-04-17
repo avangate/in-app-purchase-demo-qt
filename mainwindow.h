@@ -7,7 +7,6 @@
 namespace Ui {
 class MainWindow;
 }
-using namespace AvangateAPI;
 
 class MainWindow : public QMainWindow
 {
